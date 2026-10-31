@@ -98,11 +98,11 @@
     background:var(--paper-2);
     aspect-ratio:26/16;
   }
-  .entry__thumb svg{
-    display:block;width:100%;height:100%;
+  .entry__thumb svg,.entry__thumb img{
+    display:block;width:100%;height:100%;object-fit:cover;
     transition:transform .6s cubic-bezier(.2,.7,.2,1);
   }
-  .entry:hover .entry__thumb svg{transform:scale(1.03)}
+  .entry:hover .entry__thumb svg,.entry:hover .entry__thumb img{transform:scale(1.03)}
   .entry__text{min-width:0}
   .entry__title{
     margin:0;
@@ -202,7 +202,15 @@
 
     <!-- 三栏 -->
     <div class="row row--3">
-      <div class="frame" data-slot="cell-1"></div>
+      <a class="frame entry entry--tall" href="./fractal.html" data-slot="cell-1">
+        <div class="entry__thumb">
+          <img src="./thumb-fractal.png" width="1458" height="1458" alt="九宫格分形图案">
+        </div>
+        <div class="entry__text">
+          <h2 class="entry__title entry__title--sm">九宫格分形</h2>
+          <p class="entry__desc">可变尺度替换系统：每个符号有自己的阶数和颜色，可编辑规则、生成曲线并导出参数。</p>
+        </div>
+      </a>
       <div class="frame" data-slot="cell-2"></div>
       <div class="frame" data-slot="cell-3"></div>
     </div>
