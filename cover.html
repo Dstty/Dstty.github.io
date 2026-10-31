@@ -466,7 +466,7 @@ C = {(h, 0)}</pre>
     return d === 1 ? String(n) : n + '/' + d;
   }
   function mod(v, m){ return ((v % m) + m) % m; }
-  function pct(num, den){ return den ? (num / den * 100).toFixed(2) + '%' : '—'; }
+  function pct(num, den){ return den ? (num / den * 100).toFixed(4) + '%' : '—'; }
 
   function buildTable(){
     var frag = document.createDocumentFragment();
