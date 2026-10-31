@@ -94,6 +94,25 @@
     background:var(--paper-2);padding:.6rem;
   }
   .fig canvas{display:block;width:100%;aspect-ratio:1/1;height:auto}
+  .col{min-width:0}
+  .probe{
+    display:flex;gap:.8rem;align-items:center;
+    margin-top:.55rem;padding:.6rem .7rem;
+    border:1px solid var(--line);border-radius:2px;
+    background:rgba(255,255,255,.34);
+  }
+  .probe canvas{
+    width:94px;height:94px;flex:0 0 94px;display:block;
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--paper-2);cursor:pointer;
+    transition:border-color .2s ease;
+  }
+  .probe canvas:hover{border-color:var(--ink-3)}
+  .probe__info{min-width:0}
+  .probe__num{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);letter-spacing:.04em}
+  .probe__num strong{font-size:1.05rem;color:var(--ink);font-weight:600;margin-left:.2rem}
+  .probe__pos{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);margin-top:.1rem}
+  .probe__tip{margin:.35rem 0 0;font-size:.72rem;color:var(--ink-3);line-height:1.5}
   .txt{min-width:0}
   .tag{margin:0 0 .55rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
   .txt h2{
@@ -177,7 +196,17 @@
   </section>
 
   <section class="build">
-    <div class="fig"><canvas id="c4" role="img" aria-label="4×4 四方向道路阵列"></canvas></div>
+    <div class="col">
+      <div class="fig"><canvas id="c4" role="img" aria-label="4×4 四方向道路阵列"></canvas></div>
+      <div class="probe">
+        <canvas id="p4" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
+        <div class="probe__info">
+          <div class="probe__num">编号 <strong id="n4">0</strong></div>
+          <div class="probe__pos" id="q4">位置 —</div>
+          <p class="probe__tip">点格子里的方向切换有路／无路，大图会框出同样编号的格子</p>
+        </div>
+      </div>
+    </div>
     <div class="txt">
       <p class="tag">01 · 四方向 · 单色 · 4×4</p>
       <h2>2⁴ = 16 个状态各出现一次</h2>
@@ -188,7 +217,17 @@
   </section>
 
   <section class="build">
-    <div class="fig"><canvas id="c16" role="img" aria-label="16×16 八方向道路阵列"></canvas></div>
+    <div class="col">
+      <div class="fig"><canvas id="c16" role="img" aria-label="16×16 八方向道路阵列"></canvas></div>
+      <div class="probe">
+        <canvas id="p16" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
+        <div class="probe__info">
+          <div class="probe__num">编号 <strong id="n16">0</strong></div>
+          <div class="probe__pos" id="q16">位置 —</div>
+          <p class="probe__tip">斜向点击取最近的八个方向之一</p>
+        </div>
+      </div>
+    </div>
     <div class="txt">
       <p class="tag">02 · 八方向 · 单色 · 16×16</p>
       <h2>2⁸ = 256 个状态各出现一次</h2>
@@ -199,7 +238,17 @@
   </section>
 
   <section class="build">
-    <div class="fig"><canvas id="chex" role="img" aria-label="64 个正六边形组成的道路阵列"></canvas></div>
+    <div class="col">
+      <div class="fig"><canvas id="chex" role="img" aria-label="64 个正六边形组成的道路阵列"></canvas></div>
+      <div class="probe">
+        <canvas id="phex" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
+        <div class="probe__info">
+          <div class="probe__num">编号 <strong id="nhex">0</strong></div>
+          <div class="probe__pos" id="qhex">位置 —</div>
+          <p class="probe__tip">六边形按辅助坐标的六个出口排布</p>
+        </div>
+      </div>
+    </div>
     <div class="txt">
       <p class="tag">03 · 六方向 · 单色 · 64 格正六边形</p>
       <h2>8×8 辅助矩阵到正六边形的同构重绘</h2>
@@ -211,7 +260,17 @@
   </section>
 
   <section class="build">
-    <div class="fig"><canvas id="c9" role="img" aria-label="9×9 四方向双色道路阵列"></canvas></div>
+    <div class="col">
+      <div class="fig"><canvas id="c9" role="img" aria-label="9×9 四方向双色道路阵列"></canvas></div>
+      <div class="probe">
+        <canvas id="p9" role="img" aria-label="可编辑的单格，点击循环切换无路、蓝、橙"></canvas>
+        <div class="probe__info">
+          <div class="probe__num">编号 <strong id="n9">0</strong></div>
+          <div class="probe__pos" id="q9">位置 —</div>
+          <p class="probe__tip">每次点击在三态间循环：无路 → 蓝 → 橙</p>
+        </div>
+      </div>
+    </div>
     <div class="txt">
       <p class="tag">04 · 四方向 · 双色 · 9×9</p>
       <h2>3⁴ = 81 个状态各出现一次</h2>
@@ -269,7 +328,8 @@
     blue: '#2f5d8c',
     orange: '#b45f36',
     grid: 'rgba(20,16,13,.10)',
-    bg: '#fbf9f3'
+    bg: '#fbf9f3',
+    mark: '#a6432b'
   };
 
   // 四方向 / 八方向的单位方向向量，顺序与权值位一致
@@ -301,7 +361,7 @@
     return (v >> d) & 1;
   }
 
-  function drawSquare(canvas, g){
+  function drawSquare(canvas, g, hl){
     var f = fit(canvas);
     if (!f) return;
     var ctx = f.ctx;
@@ -317,6 +377,14 @@
       for (var c = 0; c < g.cols; c++) {
         ctx.strokeRect(ox + c * cell, oy + r * cell, cell, cell);
       }
+    }
+
+    var hr = -1, hc = -1;
+    if (hl != null && hl >= 0 && hl < g.rows * g.cols) {
+      hr = Math.floor(hl / g.cols);
+      hc = hl % g.cols;
+      ctx.fillStyle = 'rgba(166,67,43,.10)';
+      ctx.fillRect(ox + hc * cell, oy + hr * cell, cell, cell);
     }
 
     var dirs = DIRS[g.dirs];
@@ -339,9 +407,16 @@
         }
       }
     }
+
+    if (hr >= 0) {
+      var b = Math.max(2, cell * 0.09);
+      ctx.strokeStyle = COL.mark;
+      ctx.lineWidth = b;
+      ctx.strokeRect(ox + hc * cell + b / 2, oy + hr * cell + b / 2, cell - b, cell - b);
+    }
   }
 
-  function drawHex(canvas, g){
+  function drawHex(canvas, g, hl){
     var f = fit(canvas);
     if (!f) return;
     var ctx = f.ctx;
@@ -358,23 +433,35 @@
     function centerX(r, c){ return offX + d * (c - r / 2); }
     function centerY(r){ return offY + (Math.sqrt(3) / 2) * d * r; }
 
+    function hexPath(px, py){
+      ctx.beginPath();
+      for (var k = 0; k < 6; k++) {
+        var a = (-90 + 60 * k) * Math.PI / 180;
+        var vx = px + Math.cos(a) * R, vy = py + Math.sin(a) * R;
+        if (k === 0) ctx.moveTo(vx, vy); else ctx.lineTo(vx, vy);
+      }
+      ctx.closePath();
+    }
+
     ctx.strokeStyle = COL.grid;
     ctx.lineWidth = 1;
     for (var r0 = 0; r0 < g.rows; r0++) {
       for (var c0 = 0; c0 < g.cols; c0++) {
-        var px = centerX(r0, c0), py = centerY(r0);
-        ctx.beginPath();
-        for (var k = 0; k < 6; k++) {
-          var a = (-90 + 60 * k) * Math.PI / 180;
-          var vx = px + Math.cos(a) * R, vy = py + Math.sin(a) * R;
-          if (k === 0) ctx.moveTo(vx, vy); else ctx.lineTo(vx, vy);
-        }
-        ctx.closePath();
+        hexPath(centerX(r0, c0), centerY(r0));
         ctx.stroke();
       }
     }
 
-    ctx.strokeStyle = COL.ink;
+    var valid = hl != null && hl >= 0 && hl < g.rows * g.cols;
+    var hr = valid ? Math.floor(hl / g.cols) : -1;
+    var hc = valid ? hl % g.cols : -1;
+
+    if (valid) {
+      hexPath(centerX(hr, hc), centerY(hr));
+      ctx.fillStyle = 'rgba(166,67,43,.10)';
+      ctx.fill();
+    }
+
     ctx.lineCap = 'round';
     ctx.lineWidth = Math.max(1.6, d * 0.15);
 
@@ -382,6 +469,7 @@
       for (var c = 0; c < g.cols; c++) {
         var v = g.data[r * g.cols + c];
         var cx = centerX(r, c), cy = centerY(r);
+        ctx.strokeStyle = COL.ink;
         for (var i = 0; i < 6; i++) {
           if (!((v >> i) & 1)) continue;
           var ang = HEX_ANG[i] * Math.PI / 180;
@@ -391,6 +479,13 @@
           ctx.stroke();
         }
       }
+    }
+
+    if (valid) {
+      hexPath(centerX(hr, hc), centerY(hr));
+      ctx.strokeStyle = COL.mark;
+      ctx.lineWidth = Math.max(2, d * 0.09);
+      ctx.stroke();
     }
   }
 
@@ -407,13 +502,144 @@
     el.textContent = lines.join('\n');
   }
 
-  function renderAll(){
-    if (!DATA) return;
-    drawSquare(document.getElementById('c4'), DATA.g4);
-    drawSquare(document.getElementById('c16'), DATA.g16);
-    drawHex(document.getElementById('chex'), DATA.hex);
-    drawSquare(document.getElementById('c9'), DATA.g9);
+  function encode(states, colors){
+    var v = 0;
+    for (var d = 0; d < states.length; d++) {
+      v += colors === 2 ? states[d] * Math.pow(3, d) : (states[d] ? Math.pow(2, d) : 0);
+    }
+    return v;
   }
+
+  function decode(v, dirs, colors){
+    var out = [];
+    for (var d = 0; d < dirs; d++) out.push(stateOf(v, d, colors));
+    return out;
+  }
+
+  // 每个方向在平面上的角度（y 向下），用于把点击位置换算成方向
+  var DIR_ANG = {
+    4: [-90, 0, 90, 180],
+    6: HEX_ANG,
+    8: [-90, -45, 0, 45, 90, 135, 180, -135]
+  };
+
+  function nearestDir(ang, n){
+    var list = DIR_ANG[n], best = 0, bd = 1e9;
+    for (var i = 0; i < list.length; i++) {
+      var diff = Math.abs(((ang - list[i] + 540) % 360) - 180);
+      if (diff < bd) { bd = diff; best = i; }
+    }
+    return best;
+  }
+
+  function drawProbe(canvas, view){
+    var f = fit(canvas);
+    if (!f) return;
+    var ctx = f.ctx, g = view.g;
+
+    var cx = f.w / 2, cy = f.h / 2;
+    var size = Math.min(f.w, f.h) * 0.76;
+
+    if (view.kind === 'hex') {
+      var R = size / Math.sqrt(3);
+      ctx.strokeStyle = COL.grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var k = 0; k < 6; k++) {
+        var a = (-90 + 60 * k) * Math.PI / 180;
+        var px = cx + Math.cos(a) * R, py = cy + Math.sin(a) * R;
+        if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.lineCap = 'round';
+      ctx.lineWidth = Math.max(2, size * 0.09);
+      ctx.strokeStyle = COL.ink;
+      for (var i = 0; i < 6; i++) {
+        if (!view.states[i]) continue;
+        var ang = HEX_ANG[i] * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ang) * size / 2, cy + Math.sin(ang) * size / 2);
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = COL.grid;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cx - size / 2, cy - size / 2, size, size);
+
+      ctx.lineCap = 'round';
+      ctx.lineWidth = Math.max(2, size * 0.09);
+      var dirs = DIRS[g.dirs];
+      for (var d = 0; d < dirs.length; d++) {
+        var st = view.states[d];
+        if (!st) continue;
+        ctx.strokeStyle = g.colors === 2 ? (st === 1 ? COL.blue : COL.orange) : COL.ink;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + dirs[d][0] * size / 2, cy + dirs[d][1] * size / 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = COL.ink;
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(1.6, size * 0.035), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawMain(view){
+    if (view.kind === 'hex') drawHex(view.main, view.g, view.index);
+    else drawSquare(view.main, view.g, view.index);
+  }
+
+  function setupView(cfg){
+    var g = cfg.g;
+    var view = {
+      kind: cfg.kind,
+      g: g,
+      main: document.getElementById(cfg.main),
+      probe: document.getElementById(cfg.probe),
+      num: document.getElementById(cfg.num),
+      pos: document.getElementById(cfg.pos),
+      states: decode(g.data[0], g.dirs, g.colors),
+      index: 0
+    };
+
+    view.apply = function(){
+      var v = encode(view.states, g.colors);
+      var idx = g.data.indexOf(v);
+      view.index = idx;
+      drawMain(view);
+      drawProbe(view.probe, view);
+      view.num.textContent = String(v);
+      if (idx >= 0) {
+        view.pos.textContent = '(' + (Math.floor(idx / g.cols) + 1) + ', ' + (idx % g.cols + 1) + ')';
+      } else {
+        view.pos.textContent = '—';
+      }
+    };
+
+    view.probe.addEventListener('click', function(e){
+      var rect = view.probe.getBoundingClientRect();
+      var x = e.clientX - rect.left - rect.width / 2;
+      var y = e.clientY - rect.top - rect.height / 2;
+      var ang = Math.atan2(y, x) * 180 / Math.PI;
+      var d = nearestDir(ang, g.dirs);
+      if (g.colors === 2) {
+        view.states[d] = (view.states[d] + 1) % 3;
+      } else {
+        view.states[d] = view.states[d] ? 0 : 1;
+      }
+      view.apply();
+    });
+
+    view.apply();
+    return view;
+  }
+
+  var VIEWS = [];
 
   fetch('./roads-data.json', { cache: 'no-cache' })
     .then(function(r){
@@ -426,12 +652,18 @@
       fillMatrix(document.getElementById('m16'), d.g16);
       fillMatrix(document.getElementById('mhex'), d.hex);
       fillMatrix(document.getElementById('m9'), d.g9);
-      renderAll();
+
+      VIEWS = [
+        setupView({ kind: 'square', g: d.g4, main: 'c4', probe: 'p4', num: 'n4', pos: 'q4' }),
+        setupView({ kind: 'square', g: d.g16, main: 'c16', probe: 'p16', num: 'n16', pos: 'q16' }),
+        setupView({ kind: 'hex', g: d.hex, main: 'chex', probe: 'phex', num: 'nhex', pos: 'qhex' }),
+        setupView({ kind: 'square', g: d.g9, main: 'c9', probe: 'p9', num: 'n9', pos: 'q9' })
+      ];
 
       var t;
       window.addEventListener('resize', function(){
         clearTimeout(t);
-        t = setTimeout(renderAll, 120);
+        t = setTimeout(function(){ VIEWS.forEach(function(v){ v.apply(); }); }, 120);
       });
     })
     .catch(function(){
