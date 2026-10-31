@@ -73,7 +73,6 @@
   .def{max-width:58ch;margin:0;color:var(--ink-2)}
   .def b{font-weight:500;color:var(--ink)}
 
-  /* 查看器外框：细边 + 四角刻线 */
   .viewer{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
   .box{
     --len:11px;
@@ -103,7 +102,7 @@
     font-family:var(--serif);font-size:1.9rem;font-weight:600;line-height:1;
     font-variant-numeric:tabular-nums;min-width:2.2ch;
   }
-  .nslider{display:flex;align-items:center;gap:.55rem;flex:1 1 14rem;min-width:12rem}
+  .nslider{display:flex;align-items:center;gap:.55rem;flex:1 1 12rem;min-width:10rem}
   .step{
     width:2rem;height:2rem;flex:0 0 auto;display:grid;place-items:center;
     border:1px solid var(--line);border-radius:2px;background:transparent;
@@ -124,15 +123,20 @@
   input[type=range]::-moz-range-track{height:2px;background:var(--line);border-radius:2px}
   input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--ink);border:2px solid var(--paper)}
 
-  .modes{display:flex;gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden}
-  .mode{
-    font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;
-    padding:.42rem .7rem;border:0;background:transparent;color:var(--ink-3);cursor:pointer;
-    transition:background-color .2s ease,color .2s ease;
+  .tools{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+  .zoom{display:flex;align-items:center;gap:.3rem}
+  .zoomv{
+    font-family:var(--mono);font-size:.7rem;color:var(--ink-3);
+    min-width:3.8ch;text-align:center;font-variant-numeric:tabular-nums;
   }
-  .mode + .mode{border-left:1px solid var(--line)}
-  .mode.is-on{background:var(--ink);color:var(--paper)}
-  .mode:not(.is-on):hover{color:var(--ink);background-color:rgba(255,255,255,.55)}
+  .toggle{
+    font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;white-space:nowrap;
+    padding:.44rem .7rem;border:1px solid var(--line);border-radius:2px;background:transparent;
+    color:var(--ink-3);cursor:pointer;
+    transition:background-color .2s ease,color .2s ease,border-color .2s ease;
+  }
+  .toggle:hover{border-color:var(--ink-3);color:var(--ink)}
+  .toggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
   .stats{
     display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
@@ -149,21 +153,26 @@
   }
 
   .canvaswrap{padding:.7rem;background:rgba(255,255,255,.28)}
-  #tile{display:block;width:100%;height:clamp(220px,40vh,380px);border:1px solid var(--line);border-radius:1px}
+  #tile{
+    display:block;width:100%;height:clamp(240px,42vh,420px);
+    border:1px solid var(--line);border-radius:1px;
+    cursor:grab;touch-action:none;
+  }
+  #tile:active{cursor:grabbing}
 
   .bar--foot{
     border-bottom:0;border-top:1px solid var(--line);
-    font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:var(--ink-3);
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;color:var(--ink-3);
     align-items:center;
   }
-  .legend{display:inline-flex;align-items:center;gap:.4rem}
+  .legend{display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
   .legend i{width:8px;height:8px;display:inline-block;border-radius:1px}
   .legend .dot{background:var(--accent)}
   .legend .sq{background:var(--paper-2);border:1px solid var(--line)}
-  .note{margin-left:auto;text-align:right}
+  .legend .band{background:rgba(166,67,43,.18);border:1px solid rgba(166,67,43,.25)}
+  .note{margin-left:auto;text-align:right;line-height:1.6}
 
-  /* 记录表 */
-  .recordsWrap{max-width:var(--wide);margin:0 auto;padding:clamp(1.6rem,4vw,2.6rem) var(--pad) 0}
+  .recordsWrap{max-width:var(--wide);margin:0 auto;padding:clamp(1.4rem,4vw,2.2rem) var(--pad) 0}
   details{border-top:1px solid var(--line)}
   summary{
     display:flex;align-items:center;gap:.6rem;padding:1.05rem 0;cursor:pointer;
@@ -174,7 +183,7 @@
   summary::before{content:"+";font-size:.9rem;color:var(--accent);width:1ch}
   details[open] summary::before{content:"−"}
   summary:hover{color:var(--ink)}
-  .tableScroll{max-height:min(62vh,32rem);overflow:auto;border:1px solid var(--line);border-radius:2px}
+  .tableScroll{max-height:min(58vh,30rem);overflow:auto;border:1px solid var(--line);border-radius:2px;margin-bottom:.4rem}
   table{width:100%;border-collapse:collapse;font-size:.85rem;background:rgba(255,255,255,.28)}
   th,td{padding:.48rem .75rem;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
   thead th{
@@ -183,6 +192,7 @@
     text-transform:uppercase;color:var(--ink-3);
   }
   tbody td.num{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
+  tbody tr{cursor:pointer}
   tbody tr.is-current{background:rgba(166,67,43,.08)}
   tbody tr.is-current td{font-weight:600}
   tbody tr:hover{background:rgba(20,16,13,.035)}
@@ -201,7 +211,7 @@
     .stats>div:last-child{grid-column:1 / -1}
     .note{margin-left:0;text-align:left;width:100%}
     .nslider{order:3;flex-basis:100%}
-    .modes{order:2}
+    .tools{margin-left:auto}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
@@ -237,9 +247,13 @@
           <input id="nRange" type="range" min="1" max="50" step="1" value="10" aria-label="参数 n，范围 1 到 50">
           <button class="step" type="button" data-step="1" aria-label="n 加一">+</button>
         </div>
-        <div class="modes" role="group" aria-label="视图模式">
-          <button class="mode" type="button" data-mode="tile">平铺</button>
-          <button class="mode" type="button" data-mode="cell">晶胞</button>
+        <div class="tools">
+          <div class="zoom" role="group" aria-label="缩放">
+            <button class="step" type="button" data-zoom="-1" aria-label="缩小">−</button>
+            <output id="zoomOut" class="zoomv">100%</output>
+            <button class="step" type="button" data-zoom="1" aria-label="放大">+</button>
+          </div>
+          <button class="toggle" type="button" id="borderBtn" aria-pressed="false">显示晶胞边界</button>
         </div>
       </div>
 
@@ -258,6 +272,7 @@
       <div class="bar bar--foot">
         <span class="legend"><i class="dot"></i>空位</span>
         <span class="legend"><i class="sq"></i>棋子</span>
+        <span class="legend" id="bandLegend" hidden><i class="band"></i>晶胞边界</span>
         <span class="note" id="note"></span>
       </div>
 
@@ -265,7 +280,7 @@
   </section>
 
   <section class="recordsWrap">
-    <details id="records">
+    <details id="records" open>
       <summary>n = 1 … 50 的完整记录</summary>
       <div class="tableScroll">
         <table>
@@ -280,7 +295,7 @@
 
   <footer class="foot">
     <p>记录来自 50 个已保存晶胞，逐项做过四方向覆盖检查。δ 为已实现的空位密度，ρ = 1 − δ 是最大棋子密度的构造下界。</p>
-    <p>n ≤ 7 与 n ≡ 1, 5 (mod 6) 已证全局最优；其余 n 的最佳性尚未证明，表中数值只作构造上界使用。</p>
+    <p>n ≤ 7 与 n ≡ 1, 5 (mod 6) 已证全局最优；其余 n 的最佳性尚未证明，表中数值只作构造上界使用。点击表格任意一行可跳到对应的 n。</p>
   </footer>
 </main>
 
@@ -292,6 +307,9 @@
   var ctx = canvas.getContext('2d');
   var nOut = document.getElementById('nOut');
   var nRange = document.getElementById('nRange');
+  var zoomOut = document.getElementById('zoomOut');
+  var borderBtn = document.getElementById('borderBtn');
+  var bandLegend = document.getElementById('bandLegend');
   var note = document.getElementById('note');
   var tbody = document.getElementById('tbody');
   var st = {
@@ -304,8 +322,11 @@
 
   var DATA = null;
   var curN = 10;
-  var mode = null;           // null = 自动；'tile' / 'cell' = 手动
-  var INK = '#14100d', ACCENT = '#a6432b', PAPER = '#fbf9f3';
+  var zoom = 8;                     // 每格像素
+  var pan = { x: 0, y: 0 };         // 画布像素偏移
+  var showBorder = false;
+  var drag = null;
+  var ACCENT = '#a6432b';
 
   function gcd(a, b){ while (b) { var t = a % b; a = b; b = t; } return a; }
   function frac(num, den){
@@ -314,25 +335,19 @@
     var n = num / g, d = den / g;
     return d === 1 ? String(n) : n + '/' + d;
   }
-
-  function rowsData(){
-    var keys = Object.keys(DATA).map(Number).sort(function(a,b){ return a - b; });
-    return keys.map(function(n){
-      var r = DATA[String(n)];
-      var total = r.H * r.W;
-      return { n: n, H: r.H, W: r.W, s: r.s, B: r.B, total: total };
-    });
-  }
+  function mod(v, m){ return ((v % m) + m) % m; }
 
   function buildTable(){
     var frag = document.createDocumentFragment();
-    rowsData().forEach(function(r){
+    Object.keys(DATA).map(Number).sort(function(a,b){ return a - b; }).forEach(function(n){
+      var r = DATA[String(n)];
+      var total = r.H * r.W;
       var tr = document.createElement('tr');
-      tr.dataset.n = String(r.n);
+      tr.dataset.n = String(n);
       tr.innerHTML =
-        '<td class="num">' + r.n + '</td>' +
-        '<td class="num">' + frac(r.B, r.total) + '</td>' +
-        '<td class="num">' + frac(r.total - r.B, r.total) + '</td>' +
+        '<td class="num">' + n + '</td>' +
+        '<td class="num">' + frac(r.B, total) + '</td>' +
+        '<td class="num">' + frac(total - r.B, total) + '</td>' +
         '<td class="num">' + r.H + '×' + r.W + '</td>' +
         '<td class="num">' + r.s + '</td>' +
         '<td class="num">' + r.B + '</td>';
@@ -359,8 +374,7 @@
   }
 
   function fitCanvas(){
-    var cssW = canvas.clientWidth;
-    var cssH = canvas.clientHeight;
+    var cssW = canvas.clientWidth, cssH = canvas.clientHeight;
     if (!cssW || !cssH) return null;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var w = Math.round(cssW * dpr), h = Math.round(cssH * dpr);
@@ -371,72 +385,69 @@
     return { w: cssW, h: cssH };
   }
 
-  // 真实平铺：格点 (x,y) 归约到晶胞坐标后查 cells
   function drawTile(rec, size){
     var H = rec.H, W = rec.W, s = rec.s, cells = rec.cells;
-    var cell = Math.max(3, Math.min(11, size.w / 96));
-    var cols = Math.floor(size.w / cell);
-    var rows = Math.floor(size.h / cell);
-    var dot = Math.max(1.5, cell * 0.62);
+    var cell = zoom;
+    var cols = Math.ceil(size.w / cell);
+    var rows = Math.ceil(size.h / cell);
+
+    var ox = Math.floor(pan.x / cell);            // 起始格列
+    var oy = Math.floor(pan.y / cell);            // 起始格行
+    var sx = -(pan.x - ox * cell);                // 亚像素偏移
+    var sy = -(pan.y - oy * cell);
+
+    var dot = Math.max(1.2, cell * 0.62);
     var off = (cell - dot) / 2;
 
+    // 先铺晶胞边界带
+    if (showBorder) {
+      ctx.fillStyle = 'rgba(166,67,43,.17)';
+      for (var by = 0; by < rows; by++) {
+        var gy0 = oy + by;
+        var q0 = Math.floor(gy0 / H), r0 = mod(gy0, H);
+        var sh0 = mod(q0 * s, W);
+        for (var bx = 0; bx < cols; bx++) {
+          var gx0 = ox + bx;
+          if (r0 === 0 || mod(gx0 - sh0, W) === 0) {
+            ctx.fillRect(sx + bx * cell, sy + by * cell, cell, cell);
+          }
+        }
+      }
+    }
+
+    // 再画空位
     ctx.fillStyle = ACCENT;
     for (var y = 0; y < rows; y++) {
-      var q = Math.floor(y / H), r = y % H;
-      var sh = (((q * s) % W) + W) % W;
-      var col = (((0 - sh) % W) + W) % W;
+      var gy = oy + y;
+      var q = Math.floor(gy / H), r = mod(gy, H);
+      var sh = mod(q * s, W);
       var base = r * W;
+      var col = mod(ox - sh, W);
       for (var x = 0; x < cols; x++) {
         if (cells.charCodeAt(base + col) === 49) {
-          ctx.fillRect(x * cell + off, y * cell + off, dot, dot);
+          ctx.fillRect(sx + x * cell + off, sy + y * cell + off, dot, dot);
         }
         col++;
         if (col === W) col = 0;
       }
     }
 
-    // 格子细线，仅在大格距下绘制
     if (cell >= 6) {
       ctx.strokeStyle = 'rgba(20,16,13,.06)';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      for (var i = 1; i < cols; i++) { ctx.moveTo(Math.round(i * cell) + .5, 0); ctx.lineTo(Math.round(i * cell) + .5, rows * cell); }
-      for (var j = 1; j < rows; j++) { ctx.moveTo(0, Math.round(j * cell) + .5); ctx.lineTo(cols * cell, Math.round(j * cell) + .5); }
-      ctx.stroke();
-    }
-
-    return '平铺窗口 ' + cols + '×' + rows + ' 格（格距 ' + cell.toFixed(1) + 'px），晶胞 ' + H + '×' + W + '，剪切 s=' + s;
-  }
-
-  // 晶胞展开：把 H×W 的 cells 折行显示，适合周期极长的一维晶胞
-  function drawCell(rec, size){
-    var total = rec.H * rec.W, cells = rec.cells;
-    var perRow = Math.min(rec.W, Math.max(8, Math.floor(size.w / 4)));
-    var rowCount = Math.ceil(total / perRow);
-    var cw = Math.min(size.w / perRow, 12);
-    var ch = Math.min(size.h / rowCount, 12);
-    var ox = 0, oy = 0;
-    var dot = Math.max(1.2, Math.min(cw, ch) * 0.66);
-    var dx = (cw - dot) / 2, dy = (ch - dot) / 2;
-
-    ctx.fillStyle = ACCENT;
-    for (var i = 0; i < total; i++) {
-      if (cells.charCodeAt(i) === 49) {
-        var row = Math.floor(i / perRow), col = i % perRow;
-        ctx.fillRect(ox + col * cw + dx, oy + row * ch + dy, dot, dot);
+      for (var i = 1; i < cols; i++) {
+        var lx = Math.round(sx + i * cell) + .5;
+        ctx.moveTo(lx, 0); ctx.lineTo(lx, size.h);
       }
-    }
-
-    if (cw >= 5) {
-      ctx.strokeStyle = 'rgba(20,16,13,.06)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (var c = 1; c < perRow; c++) { ctx.moveTo(Math.round(c * cw) + .5, 0); ctx.lineTo(Math.round(c * cw) + .5, rowCount * ch); }
-      for (var r = 1; r < rowCount; r++) { ctx.moveTo(0, Math.round(r * ch) + .5); ctx.lineTo(perRow * cw, Math.round(r * ch) + .5); }
+      for (var j = 1; j < rows; j++) {
+        var ly = Math.round(sy + j * cell) + .5;
+        ctx.moveTo(0, ly); ctx.lineTo(size.w, ly);
+      }
       ctx.stroke();
     }
 
-    return '晶胞按 ' + perRow + ' 列折行展开，共 ' + rowCount + ' 行 / ' + total + ' 格';
+    return '窗口 ' + cols + '×' + rows + ' 格 · 晶胞 ' + H + '×' + W + ' · s=' + s + ' · 可拖动';
   }
 
   function render(){
@@ -447,21 +458,13 @@
     updateStats(rec);
     markRow();
     canvas.setAttribute('aria-label', 'n=' + curN + ' 的四方向覆盖平铺视图');
+    borderBtn.setAttribute('aria-pressed', String(showBorder));
+    bandLegend.hidden = !showBorder;
+    zoomOut.textContent = Math.round(zoom / 8 * 100) + '%';
 
     var size = fitCanvas();
     if (!size) return;
-
-    // 周期太长时平铺窗口只截到一小段，默认改看晶胞展开
-    var auto = rec.W > Math.max(60, Math.floor(size.w / 5));
-    var use = mode || (auto ? 'cell' : 'tile');
-    var text = use === 'cell' ? drawCell(rec, size) : drawTile(rec, size);
-
-    note.textContent = text;
-
-    var btns = document.querySelectorAll('.mode');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.toggle('is-on', btns[i].dataset.mode === use);
-    }
+    note.textContent = drawTile(rec, size);
   }
 
   function setN(v){
@@ -470,15 +473,62 @@
     render();
   }
 
+  function setZoom(nz){
+    var old = zoom;
+    zoom = Math.max(2.5, Math.min(28, nz));
+    // 以画布中心为锚点缩放
+    var cw = canvas.clientWidth, ch = canvas.clientHeight;
+    if (cw && ch && old > 0) {
+      var cx = pan.x + cw / 2, cy = pan.y + ch / 2;
+      pan.x = cx / old * zoom - cw / 2;
+      pan.y = cy / old * zoom - ch / 2;
+    }
+    render();
+  }
+
   function init(){
     buildTable();
+    tbody.addEventListener('click', function(e){
+      var tr = e.target.closest('tr');
+      if (tr && tr.dataset.n) setN(+tr.dataset.n);
+    });
     nRange.addEventListener('input', function(){ setN(+nRange.value); });
     document.querySelectorAll('[data-step]').forEach(function(b){
       b.addEventListener('click', function(){ setN(curN + (+b.dataset.step)); });
     });
-    document.querySelectorAll('.mode').forEach(function(b){
-      b.addEventListener('click', function(){ mode = b.dataset.mode; render(); });
+    document.querySelectorAll('[data-zoom]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var dir = +b.dataset.zoom;
+        setZoom(dir > 0 ? zoom * 1.25 : zoom / 1.25);
+      });
     });
+    borderBtn.addEventListener('click', function(){
+      showBorder = !showBorder;
+      render();
+    });
+    canvas.addEventListener('wheel', function(e){
+      e.preventDefault();
+      setZoom(e.deltaY < 0 ? zoom * 1.12 : zoom / 1.12);
+    }, { passive: false });
+    canvas.addEventListener('pointerdown', function(e){
+      drag = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y };
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+      canvas.style.cursor = 'grabbing';
+    });
+    canvas.addEventListener('pointermove', function(e){
+      if (!drag) return;
+      pan.x = drag.px + (e.clientX - drag.sx);
+      pan.y = drag.py + (e.clientY - drag.sy);
+      render();
+    });
+    function endDrag(e){
+      drag = null;
+      canvas.style.cursor = 'grab';
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+
     var t;
     window.addEventListener('resize', function(){
       clearTimeout(t); t = setTimeout(render, 120);
