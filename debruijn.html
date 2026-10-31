@@ -511,7 +511,12 @@
       var enc = encodeAt(g, view.win.i, view.win.j);
       view.state.textContent = '编码 ' + enc + ' · (' + (view.win.i + 1) + ', ' + (view.win.j + 1) + ')';
       if (view.input.value !== String(enc)) view.input.value = String(enc);
-      view.geo = drawTorus(view.torus, g, view.win, view.ext);
+      // 搜索框收起时不要画高亮
+      view.geo = drawTorus(
+        view.torus, g,
+        (view.box && !view.box.open) ? null : view.win,
+        view.ext
+      );
       view.pgeo = drawPreview(view.preview, g, view.win);
     };
 
@@ -564,6 +569,7 @@
 
     var col = view.torus.closest('.col');
     var box = col ? col.querySelector('details.probe') : null;
+    view.box = box;
     if (box) {
       box.addEventListener('toggle', function(){
         if (box.open) view.apply();
