@@ -657,6 +657,8 @@
       var v = encode(view.states, g.colors);
       var idx = g.data.indexOf(v);
       view.index = idx;
+      // 搜索框收起时不要恢复高亮
+      if (view.box && !view.box.open) view.index = -1;
       view.geo = drawMain(view);
       drawProbe(view.probe, view);
       view.state.textContent = '编号 ' + v +
@@ -700,6 +702,7 @@
 
     // 收起时移除高亮，展开时重绘画布并恢复
     var box = view.probe.closest('details');
+    view.box = box;
     if (box) {
       box.addEventListener('toggle', function(){
         if (box.open) {
