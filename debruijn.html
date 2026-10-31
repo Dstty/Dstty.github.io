@@ -74,10 +74,21 @@
   }
   .col{min-width:0}
   .fig{
+    position:relative;
     border:1px solid var(--line);border-radius:2px;
     background:var(--paper-2);padding:.6rem;
   }
   .fig canvas{display:block;width:100%;aspect-ratio:1/1;height:auto;cursor:pointer}
+  .wrapbtn{
+    position:absolute;top:.95rem;right:.95rem;
+    font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+    padding:.34rem .55rem;border:1px solid var(--line);border-radius:2px;
+    background:var(--btn-bg);color:var(--ink-3);cursor:pointer;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    transition:background-color .2s ease,color .2s ease,border-color .2s ease;
+  }
+  .wrapbtn:hover{border-color:var(--ink-3);color:var(--ink)}
+  .wrapbtn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .txt{min-width:0}
   .tag{margin:0 0 .55rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
   .txt h2{
@@ -197,7 +208,10 @@
 
   <section class="build">
     <div class="col">
-      <div class="fig"><canvas id="t4" role="img" aria-label="4×4 双色 de Bruijn 环面"></canvas></div>
+      <div class="fig">
+        <canvas id="t4" role="img" aria-label="4×4 双色 de Bruijn 环面"></canvas>
+        <button class="wrapbtn" id="b4" type="button" aria-pressed="false">环绕</button>
+      </div>
       <details class="probe" open>
         <summary>
           <span class="probe__label">窗口</span>
@@ -224,7 +238,10 @@
 
   <section class="build">
     <div class="col">
-      <div class="fig"><canvas id="t8" role="img" aria-label="8×8 双色 de Bruijn 环面"></canvas></div>
+      <div class="fig">
+        <canvas id="t8" role="img" aria-label="8×8 双色 de Bruijn 环面"></canvas>
+        <button class="wrapbtn" id="b8" type="button" aria-pressed="false">环绕</button>
+      </div>
       <details class="probe" open>
         <summary>
           <span class="probe__label">窗口</span>
@@ -251,7 +268,10 @@
 
   <section class="build">
     <div class="col">
-      <div class="fig"><canvas id="t9" role="img" aria-label="9×9 三色 de Bruijn 环面"></canvas></div>
+      <div class="fig">
+        <canvas id="t9" role="img" aria-label="9×9 三色 de Bruijn 环面"></canvas>
+        <button class="wrapbtn" id="b9" type="button" aria-pressed="false">环绕</button>
+      </div>
       <details class="probe" open>
         <summary>
           <span class="probe__label">窗口</span>
@@ -367,56 +387,70 @@
     return [{ start: start, end: size }, { start: 0, end: end - size }];
   }
 
-  function drawTorus(canvas, g, win){
+  function drawTorus(canvas, g, win, ext){
     var f = fit(canvas);
     if (!f) return null;
     var ctx = f.ctx;
 
-    var pad = 8;
-    var cell = Math.min((f.w - 2 * pad) / g.cols, (f.h - 2 * pad) / g.rows);
-    var ox = (f.w - cell * g.cols) / 2;
-    var oy = (f.h - cell * g.rows) / 2;
+    // 展开时右侧补 ww-1 列、下方补 wh-1 行，使任意窗口都能完整落在图内
+    var cols = ext ? g.cols + g.ww - 1 : g.cols;
+    var rows = ext ? g.rows + g.wh - 1 : g.rows;
 
-    for (var r = 0; r < g.rows; r++) {
-      for (var c = 0; c < g.cols; c++) {
-        ctx.fillStyle = colorOf(g, g.cells[r][c]);
+    var pad = 8;
+    var cell = Math.min((f.w - 2 * pad) / cols, (f.h - 2 * pad) / rows);
+    var ox = (f.w - cell * cols) / 2;
+    var oy = (f.h - cell * rows) / 2;
+
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        ctx.fillStyle = colorOf(g, g.cells[r % g.rows][c % g.cols]);
         ctx.fillRect(ox + c * cell, oy + r * cell, cell, cell);
       }
-    }
-
-    // 窗口只画外框，跨边界时拆成若干块
-    if (win) {
-      var rowParts = splitRange(win.i, g.wh, g.rows);
-      var colParts = splitRange(win.j, g.ww, g.cols);
-      ctx.save();
-      ctx.strokeStyle = COL.mark;
-      ctx.lineWidth = 3;
-      ctx.shadowColor = COL.mark;
-      ctx.shadowBlur = 10;
-      for (var rp = 0; rp < rowParts.length; rp++) {
-        for (var cp = 0; cp < colParts.length; cp++) {
-          var ra = rowParts[rp], ca = colParts[cp];
-          ctx.strokeRect(
-            ox + ca.start * cell + 1.5,
-            oy + ra.start * cell + 1.5,
-            (ca.end - ca.start) * cell - 3,
-            (ra.end - ra.start) * cell - 3
-          );
-        }
-      }
-      ctx.restore();
     }
 
     // 格线
     ctx.strokeStyle = COL.grid;
     ctx.lineWidth = 1;
-    for (var r2 = 0; r2 < g.rows; r2++) {
-      for (var c2 = 0; c2 < g.cols; c2++) {
+    for (var r2 = 0; r2 < rows; r2++) {
+      for (var c2 = 0; c2 < cols; c2++) {
         ctx.strokeRect(ox + c2 * cell, oy + r2 * cell, cell, cell);
       }
     }
 
-    return { ox: ox, oy: oy, cell: cell };
+    // 窗口只画外框；未展开时跨边界会拆成若干块
+    if (win) {
+      ctx.save();
+      ctx.strokeStyle = COL.mark;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = COL.mark;
+      ctx.shadowBlur = 10;
+
+      if (ext) {
+        ctx.strokeRect(
+          ox + win.j * cell + 1.5,
+          oy + win.i * cell + 1.5,
+          g.ww * cell - 3,
+          g.wh * cell - 3
+        );
+      } else {
+        var rowParts = splitRange(win.i, g.wh, g.rows);
+        var colParts = splitRange(win.j, g.ww, g.cols);
+        for (var rp = 0; rp < rowParts.length; rp++) {
+          for (var cp = 0; cp < colParts.length; cp++) {
+            var ra = rowParts[rp], ca = colParts[cp];
+            ctx.strokeRect(
+              ox + ca.start * cell + 1.5,
+              oy + ra.start * cell + 1.5,
+              (ca.end - ca.start) * cell - 3,
+              (ra.end - ra.start) * cell - 3
+            );
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    return { ox: ox, oy: oy, cell: cell, rows: rows, cols: cols };
   }
 
   function drawPreview(canvas, g, win){
@@ -459,14 +493,16 @@
       input: document.getElementById(cfg.input),
       state: document.getElementById(cfg.state),
       win: { i: 0, j: 0 },
-      geo: null
+      geo: null,
+      ext: false,
+      btn: null
     };
 
     view.apply = function(){
       var enc = encodeAt(g, view.win.i, view.win.j);
       view.state.textContent = '编码 ' + enc + ' · (' + (view.win.i + 1) + ', ' + (view.win.j + 1) + ')';
       if (view.input.value !== String(enc)) view.input.value = String(enc);
-      view.geo = drawTorus(view.torus, g, view.win);
+      view.geo = drawTorus(view.torus, g, view.win, view.ext);
       view.pgeo = drawPreview(view.preview, g, view.win);
     };
 
@@ -476,8 +512,8 @@
       var x = e.clientX - rect.left, y = e.clientY - rect.top;
       var c = Math.floor((x - view.geo.ox) / view.geo.cell);
       var r = Math.floor((y - view.geo.oy) / view.geo.cell);
-      if (r < 0 || r >= g.rows || c < 0 || c >= g.cols) return;
-      view.win = { i: r, j: c };
+      if (r < 0 || c < 0 || r >= view.geo.rows || c >= view.geo.cols) return;
+      view.win = { i: r % g.rows, j: c % g.cols };
       view.apply();
     });
 
@@ -508,12 +544,21 @@
       view.apply();
     });
 
+    view.btn = document.getElementById(cfg.wrap);
+    if (view.btn) {
+      view.btn.addEventListener('click', function(){
+        view.ext = !view.ext;
+        view.btn.setAttribute('aria-pressed', String(view.ext));
+        view.apply();
+      });
+    }
+
     var col = view.torus.closest('.col');
     var box = col ? col.querySelector('details.probe') : null;
     if (box) {
       box.addEventListener('toggle', function(){
         if (box.open) view.apply();
-        else drawTorus(view.torus, g, null);   // 收起时去掉高亮
+        else drawTorus(view.torus, g, null, view.ext);   // 收起时去掉高亮
       });
     }
 
@@ -530,16 +575,16 @@
     })
     .then(function(d){
       var ids = [
-        { key: 'd4', torus: 't4', preview: 'w4', input: 'i4', state: 's4', mx: 'm4' },
-        { key: 'd8', torus: 't8', preview: 'w8', input: 'i8', state: 's8', mx: 'm8' },
-        { key: 'd9', torus: 't9', preview: 'w9', input: 'i9', state: 's9', mx: 'm9' }
+        { key: 'd4', torus: 't4', preview: 'w4', input: 'i4', state: 's4', mx: 'm4', wrap: 'b4' },
+        { key: 'd8', torus: 't8', preview: 'w8', input: 'i8', state: 's8', mx: 'm8', wrap: 'b8' },
+        { key: 'd9', torus: 't9', preview: 'w9', input: 'i9', state: 's9', mx: 'm9', wrap: 'b9' }
       ];
 
       ids.forEach(function(cfg){
         var g = d[cfg.key];
         var el = document.getElementById(cfg.mx);
         if (el) el.textContent = g.cells.map(function(row){ return row.join(' '); }).join('\n');
-        VIEWS.push(setup({ g: g, torus: cfg.torus, preview: cfg.preview, input: cfg.input, state: cfg.state }));
+        VIEWS.push(setup({ g: g, torus: cfg.torus, preview: cfg.preview, input: cfg.input, state: cfg.state, wrap: cfg.wrap }));
       });
 
       var t;
