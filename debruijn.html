@@ -420,17 +420,26 @@
     // 窗口只画外框；未展开时跨边界会拆成若干块
     if (win) {
       ctx.save();
-      ctx.strokeStyle = COL.mark;
-      ctx.lineWidth = 3;
       ctx.shadowColor = COL.mark;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 12;
+
+      // 先铺一圈底色隔离带，再叠主题色细线，避免与格子同色看不清
+      var ring = function(x, y, w, h){
+        if (w <= 0 || h <= 0) return;
+        ctx.strokeStyle = COL.bg;
+        ctx.lineWidth = 7;
+        ctx.strokeRect(x, y, w, h);
+        ctx.strokeStyle = COL.mark;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, w, h);
+      };
 
       if (ext) {
-        ctx.strokeRect(
-          ox + win.j * cell + 1.5,
-          oy + win.i * cell + 1.5,
-          g.ww * cell - 3,
-          g.wh * cell - 3
+        ring(
+          ox + win.j * cell + 3.5,
+          oy + win.i * cell + 3.5,
+          g.ww * cell - 7,
+          g.wh * cell - 7
         );
       } else {
         var rowParts = splitRange(win.i, g.wh, g.rows);
@@ -438,11 +447,11 @@
         for (var rp = 0; rp < rowParts.length; rp++) {
           for (var cp = 0; cp < colParts.length; cp++) {
             var ra = rowParts[rp], ca = colParts[cp];
-            ctx.strokeRect(
-              ox + ca.start * cell + 1.5,
-              oy + ra.start * cell + 1.5,
-              (ca.end - ca.start) * cell - 3,
-              (ra.end - ra.start) * cell - 3
+            ring(
+              ox + ca.start * cell + 3.5,
+              oy + ra.start * cell + 3.5,
+              (ca.end - ca.start) * cell - 7,
+              (ra.end - ra.start) * cell - 7
             );
           }
         }
