@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fusible numbers</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="./theme.css">
+<script>
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('site-theme'); } catch (e) {}
+  document.documentElement.setAttribute('data-theme', t || 'dark');
+})();
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);font-size:16.5px;line-height:1.72;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:var(--btn-bg);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar__in{
+    max-width:var(--wide);margin:0 auto;padding:.85rem var(--pad);
+    display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-2);transition:color .2s ease;
+  }
+  .back:hover{color:var(--accent)}
+  .crumb{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  .head{max-width:var(--wide);margin:0 auto;padding:clamp(2.4rem,7vw,4.5rem) var(--pad) clamp(1.2rem,3vw,2rem)}
+  .kicker{
+    display:flex;align-items:center;gap:.7rem;margin:0 0 1.2rem;
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .kicker::before{content:"";width:2rem;height:1px;background:var(--accent);opacity:.85}
+  h1{
+    margin:0 0 1.1rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(2rem,6vw,3.3rem);line-height:1.08;letter-spacing:-.02em;
+  }
+  .def{max-width:60ch;margin:0;color:var(--ink-2)}
+
+  .wrap{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
+
+  .article{padding:clamp(1.6rem,4vw,2.4rem) 0 0;border-top:1px solid var(--line)}
+  .article h2{
+    margin:0 0 .8rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.25rem,3vw,1.6rem);letter-spacing:-.01em;
+  }
+  .article p{max-width:66ch;color:var(--ink-2);font-size:.94rem;margin:0 0 .8rem}
+
+  /* 待补占位 */
+  .ph{
+    display:inline-flex;align-items:center;gap:.55rem;
+    margin:0 0 .6rem;padding:.5rem .75rem;
+    border:1px dashed var(--line);border-radius:2px;
+    background:var(--fill);
+    font-family:var(--mono);font-size:.76rem;letter-spacing:.02em;color:var(--ink-3);
+  }
+  .ph::before{
+    content:"";width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:var(--line);
+  }
+  .ph-stack{display:flex;flex-direction:column;align-items:flex-start;gap:.5rem;margin:.4rem 0 1.4rem}
+
+  /* 演示入口 */
+  .demo{
+    padding:clamp(1.6rem,4vw,2.4rem) 0 0;
+    border-top:1px solid var(--line);
+  }
+  .demo h2{
+    margin:0 0 .9rem;font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400;
+  }
+  .demo-link{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:.4rem 1.2rem;align-items:center;
+    padding:1rem 1.1rem;
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--fill);
+    text-decoration:none;
+    transition:border-color .2s ease,background-color .2s ease,transform .2s ease;
+  }
+  .demo-link:hover{
+    border-color:var(--line-strong);
+    background-color:var(--fill-2);
+    transform:translateY(-1px);
+  }
+  .demo-link__title{
+    display:block;
+    font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.1rem,2.4vw,1.35rem);line-height:1.2;
+  }
+  .demo-link__url{
+    display:block;margin-top:.25rem;
+    font-family:var(--mono);font-size:.72rem;color:var(--ink-3);
+    word-break:break-all;
+  }
+  .demo-link__go{
+    font-family:var(--mono);font-size:1rem;color:var(--ink-3);
+    transition:color .2s ease,transform .2s ease;
+  }
+  .demo-link:hover .demo-link__go{color:var(--accent);transform:translate(2px,-2px)}
+  .demo-note{margin:.9rem 0 0;font-size:.82rem;color:var(--ink-3);max-width:62ch}
+
+  .foot{
+    max-width:var(--wide);margin:0 auto;
+    padding:clamp(2rem,5vw,3rem) var(--pad) 4rem;
+    font-size:.85rem;color:var(--ink-3);
+  }
+  .foot p{max-width:64ch;margin:0 0 .6rem}
+  .foot p:last-child{margin-bottom:0}
+
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__in">
+    <a class="back" href="./"><span aria-hidden="true">←</span> 返回</a>
+    <span class="crumb">笔记 · fusible numbers</span>
+  </div>
+</div>
+
+<header class="head">
+  <p class="kicker">Note</p>
+  <h1>fusible numbers</h1>
+  <p class="def">关于 fusible numbers 的一篇笔记。正文还没写，先把结构和对应的演示入口放好。</p>
+</header>
+
+<main class="wrap">
+
+  <section class="article">
+    <h2>正文</h2>
+    <div class="ph-stack">
+      <p class="ph">引言 · 待补</p>
+      <p class="ph">第一节标题 · 待补</p>
+      <p class="ph">第一节正文 · 待补</p>
+      <p class="ph">第二节标题 · 待补</p>
+      <p class="ph">第二节正文 · 待补</p>
+    </div>
+    <p>写的时候把上面的占位块换成正常段落即可，样式沿用这里已有的标题与正文规则。</p>
+  </section>
+
+  <section class="demo">
+    <h2>演示</h2>
+    <a class="demo-link" href="https://dstty.github.io/fusible-numbers/" target="_blank" rel="noopener">
+      <span>
+        <span class="demo-link__title">fusible numbers 交互页</span>
+        <span class="demo-link__url">dstty.github.io/fusible-numbers/</span>
+      </span>
+      <span class="demo-link__go" aria-hidden="true">↗</span>
+    </a>
+    <p class="demo-note">这个页面是独立站点，在新标签页打开。</p>
+  </section>
+
+  <footer class="foot">
+    <p>正文待写。写完把 <code>fusible.html</code> 里的占位块替换掉就行。</p>
+  </footer>
+
+</main>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="切换主题">☀</button>
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeBtn');
+  var KEY = 'site-theme';
+  function paint(t){
+    root.setAttribute('data-theme', t);
+    if (btn) {
+      btn.textContent = t === 'dark' ? '☀' : '☾';
+      btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
+    }
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  paint(saved || 'dark');
+  if (btn) btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
