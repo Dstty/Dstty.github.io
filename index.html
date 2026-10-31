@@ -97,6 +97,26 @@
   .row--3 .frame{min-height:clamp(7rem,14vh,10rem)}
   .frame--wide{min-height:clamp(6rem,10vh,8rem)}
 
+  /* 有内容的框：整块可点，标题落在左下 */
+  .entry{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;
+    padding:clamp(1.1rem,3vw,1.9rem);
+    text-decoration:none;color:inherit;
+    transition:border-color .25s ease,background-color .25s ease;
+  }
+  .entry:hover{border-color:rgba(20,16,13,.24);background-color:rgba(255,255,255,.58)}
+  .entry__title{
+    margin-top:auto;
+    font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.9rem,4.8vw,3.1rem);line-height:1.08;letter-spacing:-.02em;
+  }
+  .entry__go{
+    font-family:var(--mono);font-size:1rem;line-height:1;
+    color:var(--ink-3);
+    transition:transform .25s ease,color .25s ease;
+  }
+  .entry:hover .entry__go{transform:translate(2px,-2px);color:var(--accent)}
+
   .edge--bottom{margin-bottom:clamp(1.6rem,4vw,3rem)}
 
   /* 入场：轻微上浮 + 渐显 */
@@ -124,8 +144,11 @@
 
   <main class="stack">
 
-    <!-- 主视觉 / 首屏大框 -->
-    <div class="frame frame--hero" data-slot="hero"></div>
+    <!-- 主视觉 / 首屏大框：四方向覆盖 -->
+    <a class="frame frame--hero entry" href="./cover.html" data-slot="hero">
+      <span class="entry__title">四方向覆盖</span>
+      <span class="entry__go" aria-hidden="true">↗</span>
+    </a>
 
     <!-- 两栏 -->
     <div class="row row--2">
