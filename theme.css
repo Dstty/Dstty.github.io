@@ -18,8 +18,8 @@
   --gap:clamp(.85rem,2vw,1.35rem);
 
   --cv-bg:#fffdf7;
-  --cv-grid:rgba(20,16,13,.10);
-  --cv-grid-soft:rgba(20,16,13,.06);
+  --cv-grid:rgba(20,16,13,.15);
+  --cv-grid-soft:rgba(20,16,13,.09);
   --cv-ink:#1b1613;
   --cv-blue:#2f5d8c;
   --cv-orange:#b45f36;
@@ -52,8 +52,8 @@
   --accent-mid:rgba(217,107,74,.60);
 
   --cv-bg:#1b1816;
-  --cv-grid:rgba(234,228,216,.10);
-  --cv-grid-soft:rgba(234,228,216,.06);
+  --cv-grid:rgba(234,228,216,.22);
+  --cv-grid-soft:rgba(234,228,216,.13);
   --cv-ink:#eae4d8;
   --cv-blue:#6b9ed0;
   --cv-orange:#d98a5c;
