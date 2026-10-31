@@ -139,7 +139,7 @@
   .toggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
   .stats{
-    display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
     gap:1px;margin:0;background:var(--line);border-bottom:1px solid var(--line);
   }
   .stats>div{background:var(--paper-2);padding:.7rem .9rem;min-width:0}
@@ -152,7 +152,7 @@
     font-variant-numeric:tabular-nums;
   }
   .pct{
-    display:block;margin-top:.15rem;
+    margin-left:.35em;
     font-family:var(--mono);font-size:.66rem;font-weight:400;
     letter-spacing:.02em;color:var(--ink-3);
   }
@@ -310,8 +310,6 @@
         <div><dt>空位密度 δ</dt><dd id="stDelta">—</dd></div>
         <div><dt>棋子密度 ρ</dt><dd id="stRho">—</dd></div>
         <div><dt>晶胞 H×W</dt><dd id="stCell">—</dd></div>
-        <div><dt>剪切 s</dt><dd id="stShear">—</dd></div>
-        <div><dt>空位数 B</dt><dd id="stCount">—</dd></div>
       </dl>
 
       <div class="canvaswrap">
@@ -334,7 +332,7 @@
       <div class="tableScroll">
         <table>
           <thead>
-            <tr><th scope="col">n</th><th scope="col">δ</th><th scope="col">ρ</th><th scope="col">晶胞</th><th scope="col">s</th><th scope="col">空位 B</th></tr>
+            <tr><th scope="col">n</th><th scope="col">δ</th><th scope="col">ρ</th><th scope="col">晶胞</th></tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -449,9 +447,7 @@ C = {(h, 0)}</pre>
   var st = {
     delta: document.getElementById('stDelta'),
     rho: document.getElementById('stRho'),
-    cell: document.getElementById('stCell'),
-    shear: document.getElementById('stShear'),
-    count: document.getElementById('stCount')
+    cell: document.getElementById('stCell')
   };
 
   var DATA = null;
@@ -483,9 +479,7 @@ C = {(h, 0)}</pre>
         '<td class="num">' + n + '</td>' +
         '<td class="num">' + frac(r.B, total) + '<span class="pct">' + pct(r.B, total) + '</span></td>' +
         '<td class="num">' + frac(total - r.B, total) + '<span class="pct">' + pct(total - r.B, total) + '</span></td>' +
-        '<td class="num">' + r.H + '×' + r.W + '</td>' +
-        '<td class="num">' + r.s + '</td>' +
-        '<td class="num">' + r.B + '</td>';
+        '<td class="num">' + r.H + '×' + r.W + '</td>';
       frag.appendChild(tr);
     });
     tbody.appendChild(frag);
@@ -503,8 +497,6 @@ C = {(h, 0)}</pre>
     st.delta.innerHTML = frac(rec.B, total) + '<span class="pct">' + pct(rec.B, total) + '</span>';
     st.rho.innerHTML = frac(total - rec.B, total) + '<span class="pct">' + pct(total - rec.B, total) + '</span>';
     st.cell.textContent = rec.H + '×' + rec.W;
-    st.shear.textContent = String(rec.s);
-    st.count.textContent = String(rec.B);
     nOut.textContent = String(curN);
   }
 
