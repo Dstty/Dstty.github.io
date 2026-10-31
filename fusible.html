@@ -156,9 +156,9 @@
 </style>
 
 <link rel="stylesheet" href="./rope-lab.css?v=20261031">
-<link rel="stylesheet" href="./rope-game.css?v=20261031">
+<link rel="stylesheet" href="./rope-game.css?v=20261031-free2">
 <script defer src="./rope-core.js?v=20261031"></script>
-<script defer src="./rope-lab.js?v=20261031"></script>
+<script defer src="./rope-lab.js?v=20261031-free2"></script>
 </head>
 <body>
 
@@ -180,7 +180,7 @@
 
   <nav class="toc" aria-label="文章目录">
     <a href="#puzzle">01 燃绳问题</a><a href="#fusion">02 融合公式</a><a href="#recursion">03 递归函数</a><a href="#jumps">04 间断点</a><a href="#ordinals">05 用序数计数</a><a href="#epsilon">06 为什么是 ε₀</a>
-  <a href="#rope-lab">互动 · 你来点火</a></nav>
+  <a href="#rope-lab">互动 · 自由燃绳实验</a></nav>
 
   <article class="article">
     <section id="puzzle">
@@ -374,20 +374,22 @@ print(f(Fraction(1)))  # 1/8</code></pre>
   </article>
 
 <section id="rope-lab" class="rope-lab" aria-labelledby="rope-title">
-<p class="section-no">互动 / 你来点火</p><h2 id="rope-title">能在目标时刻烧完一根绳子吗？</h2>
-<p>每根绳子单端燃烧一小时。点击绳子两端点火，然后跳到下一次燃尽。你只在起点和燃尽事件发生时行动：尝试让某根绳子恰好在目标时刻燃尽。</p>
-<form id="rope-form" class="rope-form"><label for="rope-target">挑战目标 · 小时</label><div class="rope-input-row"><input id="rope-target" value="1.125" maxlength="160" autocomplete="off" spellcheck="false" aria-describedby="rope-help"><button type="submit">开始挑战</button></div><p id="rope-help" class="rope-hint">支持小数、分数和加减乘除，如 2+1/1024。改变目标后点击“开始挑战”。</p></form>
-<div class="rope-presets" aria-label="挑战预设"><button type="button" data-target="3/4">入门 · 45 分钟</button><button type="button" data-target="1.125">进阶 · 1.125 小时</button><button type="button" data-target="2+1/1024">挑战 · 2+1/1024 小时</button></div>
+<p class="section-no">互动 / 自由燃绳实验</p><h2 id="rope-title">点燃绳子，看看时间怎样流动</h2>
+<p>每根绳子单端燃烧一小时。自由选择端点点火，观察单端与双端燃烧，再推进到下一次燃尽。每次停下都是一个精确已知的时刻，你可以继续点火、添加绳子，探索自己的计时构造。</p>
 <p id="rope-status" class="rope-status" role="status" aria-live="polite"></p>
-<div id="rope-stage" hidden>
-<div class="rope-dashboard"><div><span>当前已知时刻</span><output id="rope-clock"></output></div><div><span>目标 / 已用绳子</span><output id="rope-summary"></output></div></div>
-<div class="rope-controls"><button type="button" id="rope-next">等到下一次燃尽</button><button type="button" id="rope-add">添加一根绳子</button><button type="button" id="rope-undo">撤销</button><button type="button" id="rope-reset">重新挑战</button></div>
-<p class="rope-hint">同一时刻可连续点击多个端点；“两端点燃”会同时点燃两个尚未点燃的端点。每个按钮标的是绳子的端点，不是时间轴。</p>
+<div id="rope-stage">
+<div class="rope-dashboard"><div><span id="rope-clock-label">当前已知时刻</span><output id="rope-clock"></output></div><div><span>实验模式 / 已用绳子</span><output id="rope-summary"></output></div></div>
+<div class="rope-controls"><button type="button" id="rope-next">燃烧到下一事件</button><button type="button" id="rope-skip" hidden>跳过动画</button><button type="button" id="rope-add">添加一根绳子</button><button type="button" id="rope-undo">撤销</button><button type="button" id="rope-reset">重置实验</button><label for="rope-speed">动画速度 <select id="rope-speed"><option value="1">正常</option><option value="2">2 倍</option><option value="4">4 倍</option></select></label></div>
+<p class="rope-hint">同一时刻可点燃多个端点。推进后，火焰随时间移动，直到下一根绳子燃尽才重新开放点火；动画中的时钟读数只用于观察。</p>
 <div id="rope-ropes" class="rope-ropes" aria-label="点击绳子端点来点火"></div>
 <details id="rope-log-wrap"><summary>操作记录</summary><ol id="rope-log"></ol></details>
-<details id="rope-answer"><summary>卡住了？查看一种解答</summary><button id="rope-solve" type="button">显示点火方案</button><p id="rope-answer-status" role="status"></p><div id="rope-table" class="table-wrap"></div></details>
+<details id="rope-challenge"><summary>可选挑战：试着命中指定时刻</summary>
+<form id="rope-form" class="rope-form"><label for="rope-target">挑战目标 · 小时</label><div class="rope-input-row"><input id="rope-target" value="1.125" maxlength="160" autocomplete="off" spellcheck="false" aria-describedby="rope-help"><button type="submit" id="rope-start-challenge">从零开始挑战</button></div><p id="rope-help" class="rope-hint">支持小数、分数和加减乘除，如 2+1/1024。开始挑战会重置当前实验。</p></form>
+<div class="rope-presets" aria-label="挑战预设"><button type="button" data-target="3/4">45 分钟</button><button type="button" data-target="1.125">1.125 小时</button><button type="button" data-target="2+1/1024">2+1/1024 小时</button><button type="button" id="rope-free">保留当前状态，返回自由模式</button></div>
+<details id="rope-answer" hidden><summary>查看一种解答</summary><button id="rope-solve" type="button">显示点火方案</button><p id="rope-answer-status" role="status"></p><div id="rope-table" class="table-wrap"></div></details>
+</details>
 </div>
-<p class="rope-hint">绳条按剩余燃烧时间绘制，不代表实际长度。游戏使用精确分数判定；自动解答采用文中的驯服构造，给出可行方案，不保证绳子数最少。</p><noscript>启用 JavaScript 后可参与挑战。</noscript>
+<p class="rope-hint">绳条按累计燃烧时间绘制，不代表实际长度。所有事件与挑战结果使用精确分数计算，动画位置使用近似值。挑战解答采用本文的驯服构造，不保证绳子数最少。</p><noscript>启用 JavaScript 后可使用自由燃绳实验。</noscript>
 </section>
 
   <section class="demo">
