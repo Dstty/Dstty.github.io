@@ -422,7 +422,7 @@
     var ctx = f.ctx;
 
     var pad = 6;
-    var unitW = 8;                                   // 以 d 为单位的宽度
+    var unitW = (g.cols - 1) + (g.rows - 1) / 2 + 1;   // 列跨度 + 行错位累积 + 两侧半宽
     var unitH = (Math.sqrt(3) / 2) * (g.rows - 1) + 2 / Math.sqrt(3);
     var d = Math.min((f.w - 2 * pad) / unitW, (f.h - 2 * pad) / unitH);
 
