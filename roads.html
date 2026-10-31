@@ -80,11 +80,25 @@
   .fig canvas{display:block;width:100%;aspect-ratio:1/1;height:auto}
   .col{min-width:0}
   .probe{
-    display:flex;gap:.8rem;align-items:center;
-    margin-top:.55rem;padding:.6rem .7rem;
+    margin-top:.55rem;
     border:1px solid var(--line);border-radius:2px;
     background:var(--fill);
   }
+  .probe summary{
+    display:flex;align-items:center;gap:.6rem;
+    padding:.55rem .7rem;cursor:pointer;list-style:none;
+    font-family:var(--mono);font-size:.68rem;color:var(--ink-3);
+  }
+  .probe summary::-webkit-details-marker{display:none}
+  .probe summary::before{
+    content:"+";flex:0 0 auto;width:1ch;
+    color:var(--accent);font-size:.82rem;line-height:1;
+  }
+  .probe[open] summary::before{content:"−"}
+  .probe summary:hover{color:var(--ink)}
+  .probe__label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase}
+  .probe__state{margin-left:auto;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .probe__body{display:flex;gap:.8rem;align-items:center;padding:0 .7rem .7rem}
   .probe canvas{
     width:94px;height:94px;flex:0 0 94px;display:block;
     border:1px solid var(--line);border-radius:2px;
@@ -92,11 +106,7 @@
     transition:border-color .2s ease;
   }
   .probe canvas:hover{border-color:var(--ink-3)}
-  .probe__info{min-width:0}
-  .probe__num{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);letter-spacing:.04em}
-  .probe__num strong{font-size:1.05rem;color:var(--ink);font-weight:600;margin-left:.2rem}
-  .probe__pos{font-family:var(--mono);font-size:.7rem;color:var(--ink-3);margin-top:.1rem}
-  .probe__tip{margin:.35rem 0 0;font-size:.72rem;color:var(--ink-3);line-height:1.5}
+  .probe__tip{margin:0;min-width:0;font-size:.72rem;color:var(--ink-3);line-height:1.55}
   .txt{min-width:0}
   .tag{margin:0 0 .55rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
   .txt h2{
@@ -182,14 +192,16 @@
   <section class="build">
     <div class="col">
       <div class="fig"><canvas id="c4" role="img" aria-label="4×4 四方向道路阵列"></canvas></div>
-      <div class="probe">
-        <canvas id="p4" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
-        <div class="probe__info">
-          <div class="probe__num">编号 <strong id="n4">0</strong></div>
-          <div class="probe__pos" id="q4">位置 —</div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">搜索框</span>
+          <span class="probe__state" id="s4">编号 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="p4" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
           <p class="probe__tip">点格子里的方向切换有路／无路，大图会框出同样编号的格子</p>
         </div>
-      </div>
+      </details>
     </div>
     <div class="txt">
       <p class="tag">01 · 四方向 · 单色 · 4×4</p>
@@ -203,14 +215,16 @@
   <section class="build">
     <div class="col">
       <div class="fig"><canvas id="c16" role="img" aria-label="16×16 八方向道路阵列"></canvas></div>
-      <div class="probe">
-        <canvas id="p16" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
-        <div class="probe__info">
-          <div class="probe__num">编号 <strong id="n16">0</strong></div>
-          <div class="probe__pos" id="q16">位置 —</div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">搜索框</span>
+          <span class="probe__state" id="s16">编号 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="p16" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
           <p class="probe__tip">斜向点击取最近的八个方向之一</p>
         </div>
-      </div>
+      </details>
     </div>
     <div class="txt">
       <p class="tag">02 · 八方向 · 单色 · 16×16</p>
@@ -224,14 +238,16 @@
   <section class="build build--hex">
     <div class="col">
       <div class="fig"><canvas id="chex" role="img" aria-label="64 个正六边形组成的道路阵列"></canvas></div>
-      <div class="probe">
-        <canvas id="phex" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
-        <div class="probe__info">
-          <div class="probe__num">编号 <strong id="nhex">0</strong></div>
-          <div class="probe__pos" id="qhex">位置 —</div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">搜索框</span>
+          <span class="probe__state" id="shex">编号 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="phex" role="img" aria-label="可编辑的单格，点击方向切换"></canvas>
           <p class="probe__tip">六边形按辅助坐标的六个出口排布</p>
         </div>
-      </div>
+      </details>
     </div>
     <div class="txt">
       <p class="tag">03 · 六方向 · 单色 · 64 格正六边形</p>
@@ -246,14 +262,16 @@
   <section class="build">
     <div class="col">
       <div class="fig"><canvas id="c9" role="img" aria-label="9×9 四方向双色道路阵列"></canvas></div>
-      <div class="probe">
-        <canvas id="p9" role="img" aria-label="可编辑的单格，点击循环切换无路、蓝、橙"></canvas>
-        <div class="probe__info">
-          <div class="probe__num">编号 <strong id="n9">0</strong></div>
-          <div class="probe__pos" id="q9">位置 —</div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">搜索框</span>
+          <span class="probe__state" id="s9">编号 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="p9" role="img" aria-label="可编辑的单格，点击循环切换无路、蓝、橙"></canvas>
           <p class="probe__tip">每次点击在三态间循环：无路 → 蓝 → 橙</p>
         </div>
-      </div>
+      </details>
     </div>
     <div class="txt">
       <p class="tag">04 · 四方向 · 双色 · 9×9</p>
@@ -605,8 +623,7 @@
       g: g,
       main: document.getElementById(cfg.main),
       probe: document.getElementById(cfg.probe),
-      num: document.getElementById(cfg.num),
-      pos: document.getElementById(cfg.pos),
+      state: document.getElementById(cfg.state),
       states: decode(g.data[0], g.dirs, g.colors),
       index: 0
     };
@@ -617,12 +634,8 @@
       view.index = idx;
       drawMain(view);
       drawProbe(view.probe, view);
-      view.num.textContent = String(v);
-      if (idx >= 0) {
-        view.pos.textContent = '(' + (Math.floor(idx / g.cols) + 1) + ', ' + (idx % g.cols + 1) + ')';
-      } else {
-        view.pos.textContent = '—';
-      }
+      view.state.textContent = '编号 ' + v +
+        (idx >= 0 ? ' · (' + (Math.floor(idx / g.cols) + 1) + ', ' + (idx % g.cols + 1) + ')' : ' · —');
     };
 
     view.probe.addEventListener('click', function(e){
@@ -638,6 +651,14 @@
       }
       view.apply();
     });
+
+    // 收起再展开时画布尺寸会变，需要重绘
+    var box = view.probe.closest('details');
+    if (box) {
+      box.addEventListener('toggle', function(){
+        if (box.open) view.apply();
+      });
+    }
 
     view.apply();
     return view;
@@ -658,10 +679,10 @@
       fillMatrix(document.getElementById('m9'), d.g9);
 
       VIEWS = [
-        setupView({ kind: 'square', g: d.g4, main: 'c4', probe: 'p4', num: 'n4', pos: 'q4' }),
-        setupView({ kind: 'square', g: d.g16, main: 'c16', probe: 'p16', num: 'n16', pos: 'q16' }),
-        setupView({ kind: 'hex', g: d.hex, main: 'chex', probe: 'phex', num: 'nhex', pos: 'qhex' }),
-        setupView({ kind: 'square', g: d.g9, main: 'c9', probe: 'p9', num: 'n9', pos: 'q9' })
+        setupView({ kind: 'square', g: d.g4, main: 'c4', probe: 'p4', state: 's4' }),
+        setupView({ kind: 'square', g: d.g16, main: 'c16', probe: 'p16', state: 's16' }),
+        setupView({ kind: 'hex', g: d.hex, main: 'chex', probe: 'phex', state: 'shex' }),
+        setupView({ kind: 'square', g: d.g9, main: 'c9', probe: 'p9', state: 's9' })
       ];
 
       var t;
