@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>道路阵列的四种构造 · Dstty</title>
+<title>道路阵列的四种构造</title>
 <meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="./theme.css">
 <script>
 (function(){
   var t = null;
-  try { t = localStorage.getItem('dstty-theme'); } catch (e) {}
+  try { t = localStorage.getItem('site-theme'); } catch (e) {}
   document.documentElement.setAttribute('data-theme', t || 'dark');
 })();
 </script>
@@ -750,7 +750,7 @@
       if (fig) fig.insertAdjacentHTML('beforeend', '<p style="font-family:ui-monospace;font-size:.7rem;color:var(--ink-3);padding:.5rem">矩阵数据未能加载</p>');
     });
 
-  window.dsttyThemeChanged = function(){
+  window.onThemeChanged = function(){
     VIEWS.forEach(function(v){ v.apply(); });
   };
 })();
@@ -760,14 +760,14 @@
 (function(){
   var root = document.documentElement;
   var btn = document.getElementById('themeBtn');
-  var KEY = 'dstty-theme';
+  var KEY = 'site-theme';
   function paint(t){
     root.setAttribute('data-theme', t);
     if (btn) {
       btn.textContent = t === 'dark' ? '☀' : '☾';
       btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
     }
-    if (typeof window.dsttyThemeChanged === 'function') window.dsttyThemeChanged();
+    if (typeof window.onThemeChanged === 'function') window.onThemeChanged();
   }
   var saved = null;
   try { saved = localStorage.getItem(KEY); } catch (e) {}
