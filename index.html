@@ -4,361 +4,175 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dstty</title>
-<meta name="description" content="Dstty — personal page.">
 <meta name="color-scheme" content="light">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
 <style>
   :root{
     --paper:#f5f2ea;
     --ink:#14100d;
-    --ink-2:#4d463d;
-    --ink-3:#8b8175;
-    --rule:#d8d0c0;
+    --line:rgba(20,16,13,.10);
+    --corner:rgba(20,16,13,.20);
+    --fill:rgba(255,255,255,.34);
     --accent:#a6432b;
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Songti SC","Source Han Serif SC","Noto Serif CJK SC",serif;
-    --sans:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
-    --mono:ui-monospace,"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    --pad:clamp(1.1rem,4.5vw,3rem);
     --wide:64rem;
-    --pad:clamp(1.15rem,4.5vw,3rem);
+    --gap:clamp(.85rem,2vw,1.35rem);
   }
   *,*::before,*::after{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:4.5rem}
+  html{-webkit-text-size-adjust:100%}
   body{
     margin:0;
     background:var(--paper);
     color:var(--ink);
-    font-family:var(--sans);
-    font-size:16.5px;
-    line-height:1.72;
-    -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   }
-  /* 极淡的格点底纹，呼应格点类研究 */
+  /* 极淡格点底纹，随页面下移逐渐淡出 */
   body::before{
     content:"";
     position:fixed;inset:0;z-index:-1;pointer-events:none;
-    background-image:radial-gradient(circle at 1px 1px,rgba(20,16,13,.10) 1px,transparent 0);
+    background-image:radial-gradient(circle at 1px 1px,rgba(20,16,13,.09) 1px,transparent 0);
     background-size:26px 26px;
-    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%);
-    mask-image:linear-gradient(180deg,#000 0%,#000 42%,transparent 92%);
-  }
-  a{color:inherit}
-  ::selection{background:rgba(166,67,43,.16)}
-
-  .skip{
-    position:absolute;left:-9999px;top:0;
-    background:var(--ink);color:var(--paper);
-    padding:.7rem 1rem;z-index:99;font-family:var(--mono);font-size:.8rem;
-  }
-  .skip:focus{left:1rem;top:1rem}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-
-  /* ── 顶栏 ───────────────────────────── */
-  .masthead{
-    position:sticky;top:0;z-index:20;
-    display:flex;align-items:center;justify-content:space-between;gap:1rem;
-    padding:.95rem var(--pad);
-    border-bottom:1px solid transparent;
-    background:rgba(245,242,234,.82);
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-    transition:border-color .3s ease;
-  }
-  .masthead.is-stuck{border-bottom-color:var(--rule)}
-  .mark{
-    font-family:var(--serif);font-size:1.06rem;font-weight:600;
-    letter-spacing:.01em;text-decoration:none;
-  }
-  .mark::after{content:".";color:var(--accent)}
-  .nav{display:flex;gap:clamp(.9rem,2.4vw,1.8rem)}
-  .nav a{
-    font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--ink-2);text-decoration:none;padding:.25rem 0;
-    background-image:linear-gradient(var(--accent),var(--accent));
-    background-repeat:no-repeat;background-position:0 100%;background-size:0 1px;
-    transition:color .25s ease,background-size .3s ease;
-  }
-  .nav a:hover{color:var(--ink);background-size:100% 1px}
-
-  /* ── 头部 ───────────────────────────── */
-  .hero{
-    max-width:var(--wide);margin:0 auto;
-    padding:clamp(4rem,12vw,9rem) var(--pad) clamp(2rem,5vw,3.5rem);
-  }
-  .kicker{
-    display:flex;align-items:center;gap:.75rem;
-    margin:0 0 1.6rem;
-    font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
-    color:var(--ink-3);
-  }
-  .kicker::before{content:"";width:2.4rem;height:1px;background:var(--accent);opacity:.8}
-  .display{
-    margin:0;
-    font-family:var(--serif);font-weight:600;
-    font-size:clamp(3.2rem,13vw,8rem);
-    line-height:.92;letter-spacing:-.025em;
-  }
-  .display em{font-style:normal;color:var(--accent)}
-  .lede{
-    margin:clamp(1.4rem,3vw,2rem) 0 0;
-    max-width:34ch;
-    font-size:clamp(1rem,1.6vw,1.12rem);
-    color:var(--ink-2);
-  }
-  .underscore{
-    display:block;width:clamp(4rem,14vw,9rem);height:2px;
-    margin:clamp(1.8rem,4vw,2.6rem) 0 0;
-    background:var(--accent);
-    transform:scaleX(0);transform-origin:left;
-  }
-  html.js .underscore.is-in{animation:draw .9s cubic-bezier(.2,.75,.2,1) .15s forwards}
-  @keyframes draw{to{transform:scaleX(1)}}
-
-  /* 刻度尺：格点研究的视觉回声 */
-  .scale{
-    height:10px;margin:clamp(2.4rem,6vw,3.6rem) 0 0;
-    border-bottom:1px solid var(--rule);
-    background-image:repeating-linear-gradient(90deg,var(--rule) 0 1px,transparent 1px 100%);
-    background-size:calc(100% / 48) 100%;
-    background-repeat:repeat-x;
+    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 94%);
+    mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 94%);
   }
 
-  /* ── 区块 ───────────────────────────── */
-  .block{
-    max-width:var(--wide);margin:0 auto;
-    padding:clamp(2.4rem,6vw,4rem) var(--pad);
-    border-top:1px solid var(--rule);
-    display:grid;grid-template-columns:9rem minmax(0,1fr);
-    gap:clamp(1rem,3vw,3rem);align-items:start;
+  .page{
+    max-width:var(--wide);
+    margin:0 auto;
+    padding:0 var(--pad);
   }
-  .block__aside{display:flex;flex-direction:column;gap:.35rem;padding-top:.35rem}
-  .num{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;color:var(--accent)}
-  .lbl{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-  .block h2{
-    margin:0 0 .9rem;
-    font-family:var(--serif);font-weight:600;
-    font-size:clamp(1.45rem,3.4vw,2rem);line-height:1.15;letter-spacing:-.01em;
-  }
-  .block p{margin:0 0 .9rem;max-width:62ch;color:var(--ink-2)}
-  .block p:last-child{margin-bottom:0}
 
-  /* 占位块：内容待填，可整块替换 */
-  .ph{
-    display:inline-flex;align-items:baseline;gap:.5rem;
-    margin:0;padding:.55rem .8rem;
-    border:1px dashed var(--rule);border-radius:2px;
-    background:rgba(255,255,255,.42);
-    font-family:var(--mono);font-size:.76rem;line-height:1.5;letter-spacing:.02em;
-    color:var(--ink-3);
+  /* 上下两条结构线，仅作版面边界 */
+  .edge{
+    height:1px;
+    background:var(--line);
   }
-  .ph::before{content:"";width:5px;height:5px;flex:0 0 5px;transform:translateY(-1px);border-radius:50%;background:var(--rule)}
-  .ph + .ph{margin-top:.55rem}
-  .ph-stack{display:flex;flex-direction:column;align-items:flex-start}
+  .edge--top{margin-top:clamp(1.6rem,4vw,3rem)}
 
-  /* 条目列表 */
-  .items{list-style:none;margin:.4rem 0 0;padding:0;border-top:1px solid var(--rule)}
-  .item{
-    display:grid;grid-template-columns:minmax(0,1fr) auto;
-    gap:.4rem 1.2rem;align-items:baseline;
-    padding:1.05rem 0;border-bottom:1px solid var(--rule);
+  .stack{
+    display:flex;
+    flex-direction:column;
+    gap:var(--gap);
+    padding:var(--gap) 0;
   }
-  .item__t{font-size:1.02rem;font-weight:500;color:var(--ink)}
-  .item__m{
-    grid-column:1;font-family:var(--mono);font-size:.74rem;letter-spacing:.02em;color:var(--ink-3);
-    border-bottom:1px dashed var(--rule);padding-bottom:.15rem;
+  .row{
+    display:grid;
+    gap:var(--gap);
   }
-  .item__y{grid-row:1;font-family:var(--mono);font-size:.72rem;color:var(--ink-3);letter-spacing:.08em}
+  .row--2{grid-template-columns:1fr 1fr}
+  .row--3{grid-template-columns:repeat(3,1fr)}
 
-  /* 链接列表 */
-  .links{list-style:none;margin:.5rem 0 0;padding:0;max-width:34rem}
-  .links a,.links span{
-    display:flex;align-items:center;justify-content:space-between;gap:1rem;
-    padding:.85rem 0;border-bottom:1px solid var(--rule);
-    text-decoration:none;font-size:.98rem;
-    transition:color .2s ease,transform .25s ease;
+  /* 空框：1px 细边 + 四角 L 型刻线 */
+  .frame{
+    --len:11px;
+    position:relative;
+    min-height:9rem;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background-color:var(--fill);
+    background-image:
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner)),
+      linear-gradient(var(--corner),var(--corner));
+    background-repeat:no-repeat;
+    background-size:
+      var(--len) 1px, 1px var(--len),
+      var(--len) 1px, 1px var(--len),
+      var(--len) 1px, 1px var(--len),
+      var(--len) 1px, 1px var(--len);
+    background-position:
+      left top, left top,
+      right top, right top,
+      left bottom, left bottom,
+      right bottom, right bottom;
   }
-  .links a:hover{color:var(--accent);transform:translateX(3px)}
-  .links .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-  .links .v{font-family:var(--mono);font-size:.78rem;color:var(--ink-2)}
-  .links .pending .v{color:var(--ink-3);border-bottom:1px dashed var(--rule)}
-  .links a::after{content:"↗";font-family:var(--mono);font-size:.8rem;color:var(--ink-3);margin-left:.2rem}
-  .links span::after{content:"—";font-family:var(--mono);font-size:.8rem;color:var(--rule);margin-left:.2rem}
 
-  /* ── 页脚 ───────────────────────────── */
-  .footer{
-    max-width:var(--wide);margin:0 auto;
-    padding:2rem var(--pad) 4rem;
-    border-top:1px solid var(--rule);
-    display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.8rem 1.5rem;
-    font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
-  }
-  .footer a{text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:1px;transition:color .2s,border-color .2s}
-  .footer a:hover{color:var(--ink);border-color:var(--ink)}
+  .frame--hero{min-height:clamp(13rem,38vh,24rem)}
+  .row--2 .frame{min-height:clamp(9rem,18vh,13rem)}
+  .row--3 .frame{min-height:clamp(7rem,14vh,10rem)}
+  .frame--wide{min-height:clamp(6rem,10vh,8rem)}
 
-  /* ── 动效 ───────────────────────────── */
-  html.js .reveal{opacity:0;transform:translateY(14px)}
-  html.js .reveal.is-in{
+  .edge--bottom{margin-bottom:clamp(1.6rem,4vw,3rem)}
+
+  /* 入场：轻微上浮 + 渐显 */
+  html.js .frame{opacity:0;transform:translateY(10px)}
+  html.js .frame.is-in{
     opacity:1;transform:none;
-    transition:opacity .75s cubic-bezier(.2,.75,.2,1) var(--d,0ms),transform .75s cubic-bezier(.2,.75,.2,1) var(--d,0ms);
+    transition:opacity .7s cubic-bezier(.2,.75,.2,1) var(--d,0ms),transform .7s cubic-bezier(.2,.75,.2,1) var(--d,0ms);
   }
 
-  /* ── 响应式 ─────────────────────────── */
   @media (max-width:760px){
-    body{font-size:16px}
-    .block{grid-template-columns:1fr;gap:.8rem}
-    .block__aside{flex-direction:row;align-items:baseline;gap:.6rem;padding-top:0}
-    .nav a{font-size:.66rem;letter-spacing:.1em}
-    .items .item{grid-template-columns:1fr}
-    .item__y{grid-row:auto;order:-1}
-    .links a,.links span{flex-wrap:wrap;gap:.2rem .8rem}
-  }
-  @media (max-width:420px){
-    .nav{gap:.8rem}
-    .nav a:last-child{display:none}
+    .row--2,.row--3{grid-template-columns:1fr}
+    .row--2 .frame{min-height:clamp(7rem,14vh,10rem)}
+    .row--3 .frame{min-height:clamp(5.5rem,11vh,8rem)}
+    .frame--hero{min-height:clamp(10rem,30vh,16rem)}
   }
   @media (prefers-reduced-motion:reduce){
-    html{scroll-behavior:auto}
-    html.js .reveal,html.js .reveal.is-in{opacity:1;transform:none;transition:none}
-    html.js .underscore{transform:none;animation:none}
+    html.js .frame,html.js .frame.is-in{opacity:1;transform:none;transition:none}
   }
 </style>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<div class="page">
 
-<header class="masthead" id="top">
-  <a class="mark" href="#top">Dstty</a>
-  <nav class="nav" aria-label="主导航">
-    <a href="#research">Research</a>
-    <a href="#works">Works</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</header>
+  <div class="edge edge--top" aria-hidden="true"></div>
 
-<div class="hero">
-  <p class="kicker reveal">Personal Page</p>
-  <h1 class="display reveal" style="--d:70ms">Dstty</h1>
-  <p class="lede reveal" style="--d:150ms">一句话介绍 · 待填</p>
-  <span class="underscore" aria-hidden="true"></span>
-  <div class="scale" aria-hidden="true"></div>
+  <main class="stack">
+
+    <!-- 主视觉 / 首屏大框 -->
+    <div class="frame frame--hero" data-slot="hero"></div>
+
+    <!-- 两栏 -->
+    <div class="row row--2">
+      <div class="frame" data-slot="col-1"></div>
+      <div class="frame" data-slot="col-2"></div>
+    </div>
+
+    <!-- 三栏 -->
+    <div class="row row--3">
+      <div class="frame" data-slot="cell-1"></div>
+      <div class="frame" data-slot="cell-2"></div>
+      <div class="frame" data-slot="cell-3"></div>
+    </div>
+
+    <!-- 通栏收尾 -->
+    <div class="frame frame--wide" data-slot="wide"></div>
+
+  </main>
+
+  <div class="edge edge--bottom" aria-hidden="true"></div>
+
 </div>
-
-<main id="main">
-
-  <section class="block" id="research">
-    <div class="block__aside reveal">
-      <span class="num">01</span>
-      <span class="lbl">Research</span>
-    </div>
-    <div class="block__main">
-      <h2 class="reveal">研究</h2>
-      <div class="ph-stack reveal">
-        <p class="ph">研究方向 · 待填</p>
-        <p class="ph">方法或关键词 · 待填</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="works">
-    <div class="block__aside reveal">
-      <span class="num">02</span>
-      <span class="lbl">Works</span>
-    </div>
-    <div class="block__main">
-      <h2 class="reveal">作品</h2>
-      <ul class="items reveal">
-        <li class="item">
-          <span class="item__t">项目标题 · 待填</span>
-          <span class="item__y">—</span>
-          <span class="item__m">一句话说明 · 待填</span>
-        </li>
-        <li class="item">
-          <span class="item__t">项目标题 · 待填</span>
-          <span class="item__y">—</span>
-          <span class="item__m">一句话说明 · 待填</span>
-        </li>
-        <li class="item">
-          <span class="item__t">项目标题 · 待填</span>
-          <span class="item__y">—</span>
-          <span class="item__m">一句话说明 · 待填</span>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="block" id="about">
-    <div class="block__aside reveal">
-      <span class="num">03</span>
-      <span class="lbl">About</span>
-    </div>
-    <div class="block__main">
-      <h2 class="reveal">关于</h2>
-      <div class="ph-stack reveal">
-        <p class="ph">自我介绍 · 待填</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="contact">
-    <div class="block__aside reveal">
-      <span class="num">04</span>
-      <span class="lbl">Contact</span>
-    </div>
-    <div class="block__main">
-      <h2 class="reveal">联系</h2>
-      <ul class="links reveal">
-        <li><a href="https://github.com/Dstty" rel="me"><span class="k">GitHub</span><span class="v">github.com/Dstty</span></a></li>
-        <li class="pending"><span><span class="k">Email</span><span class="v">邮箱 · 待填</span></span></li>
-        <li class="pending"><span><span class="k">Elsewhere</span><span class="v">链接 · 待填</span></span></li>
-      </ul>
-    </div>
-  </section>
-
-</main>
-
-<footer class="footer">
-  <span>© <span id="year">2026</span> Dstty</span>
-  <span>Built with plain HTML · <a href="#top">回到顶部</a></span>
-</footer>
 
 <script>
 (function(){
   var root = document.documentElement;
   root.classList.add('js');
 
-  var els = document.querySelectorAll('.reveal');
+  var frames = document.querySelectorAll('.frame');
   var show = function(el){ el.classList.add('is-in'); };
 
   if (!('IntersectionObserver' in window)) {
-    els.forEach(show);
-  } else {
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
-      });
-    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
-    els.forEach(function(el){ io.observe(el); });
+    frames.forEach(show);
+    return;
   }
 
-  var under = document.querySelector('.underscore');
-  if (under && 'IntersectionObserver' in window) {
-    var io2 = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if (e.isIntersecting) { show(e.target); io2.unobserve(e.target); } });
+  // 首屏内的框直接依次出场，其余滚动进入时再显示
+  frames.forEach(function(el, i){
+    if (i < 3) { el.style.setProperty('--d', (i * 90) + 'ms'); show(el); }
+  });
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
     });
-    io2.observe(under);
-  } else if (under) { show(under); }
-
-  var head = document.querySelector('.masthead');
-  var onScroll = function(){
-    if (!head) return;
-    if (window.scrollY > 8) head.classList.add('is-stuck');
-    else head.classList.remove('is-stuck');
-  };
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  var y = document.getElementById('year');
-  if (y) y.textContent = new Date().getFullYear();
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
+  frames.forEach(function(el){ io.observe(el); });
 })();
 </script>
 </body>
