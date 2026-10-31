@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>道路阵列的四种构造 · Dstty</title>
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#f5f2ea;
+    --paper-2:#fbf9f3;
+    --ink:#14100d;
+    --ink-2:#4d463d;
+    --ink-3:#8b8175;
+    --line:rgba(20,16,13,.12);
+    --corner:rgba(20,16,13,.20);
+    --accent:#a6432b;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Songti SC","Source Han Serif SC","Noto Serif CJK SC",serif;
+    --sans:-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    --mono:ui-monospace,"SFMono-Regular","Cascadia Mono",Consolas,"Liberation Mono",monospace;
+    --wide:64rem;
+    --pad:clamp(1.1rem,4.5vw,3rem);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:16.5px;line-height:1.72;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:radial-gradient(circle at 1px 1px,rgba(20,16,13,.09) 1px,transparent 0);
+    background-size:26px 26px;
+    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 94%);
+    mask-image:linear-gradient(180deg,#000 0%,#000 45%,transparent 94%);
+  }
+  a{color:inherit}
+  ::selection{background:rgba(166,67,43,.16)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:rgba(245,242,234,.88);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar__in{
+    max-width:var(--wide);margin:0 auto;padding:.85rem var(--pad);
+    display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-2);transition:color .2s ease;
+  }
+  .back:hover{color:var(--accent)}
+  .crumb{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  .head{max-width:var(--wide);margin:0 auto;padding:clamp(2.4rem,7vw,4.5rem) var(--pad) clamp(1.2rem,3vw,2rem)}
+  .kicker{
+    display:flex;align-items:center;gap:.7rem;margin:0 0 1.2rem;
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .kicker::before{content:"";width:2rem;height:1px;background:var(--accent);opacity:.85}
+  h1{
+    margin:0 0 1.1rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(2rem,6vw,3.3rem);line-height:1.08;letter-spacing:-.02em;
+  }
+  .def{max-width:60ch;margin:0;color:var(--ink-2)}
+  .def b{font-weight:500;color:var(--ink)}
+
+  .wrap{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
+  .rules{
+    border:1px solid var(--line);border-radius:2px;
+    background:rgba(255,255,255,.34);
+    padding:1rem 1.1rem;margin:0 0 clamp(1.6rem,4vw,2.4rem);
+  }
+  .rules h2{
+    margin:0 0 .6rem;font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400;
+  }
+  .rules ul{margin:0;padding-left:1.1rem;font-size:.9rem;color:var(--ink-2)}
+  .rules li{margin:.3rem 0}
+
+  .build{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:clamp(1rem,3vw,2.2rem);align-items:start;
+    padding:clamp(1.4rem,3.5vw,2.2rem) 0;border-top:1px solid var(--line);
+  }
+  .fig{
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--paper-2);padding:.6rem;
+  }
+  .fig canvas{display:block;width:100%;aspect-ratio:1/1;height:auto}
+  .txt{min-width:0}
+  .tag{margin:0 0 .55rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .txt h2{
+    margin:0 0 .6rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.2rem,2.6vw,1.5rem);line-height:1.25;letter-spacing:-.01em;
+  }
+  .txt p{margin:0 0 .7rem;font-size:.9rem;color:var(--ink-2);max-width:52ch}
+  .txt p:last-child{margin-bottom:0}
+  .txt code{font-family:var(--mono);font-size:.78rem;background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:2px;padding:.08em .3em}
+  .why{color:var(--ink-3);font-size:.85rem;border-left:2px solid var(--line);padding-left:.8rem}
+  .mx{
+    font-family:var(--mono);font-size:.72rem;line-height:1.55;
+    margin:.7rem 0;padding:.7rem .8rem;
+    background:rgba(255,255,255,.5);border:1px solid var(--line);border-radius:2px;
+    overflow-x:auto;white-space:pre;color:var(--ink-2);
+  }
+  .mx--sm{font-size:.58rem;line-height:1.4}
+  .legend{display:flex;gap:1rem;flex-wrap:wrap;margin:.2rem 0 .7rem;font-family:var(--mono);font-size:.68rem;color:var(--ink-3)}
+  .legend i{display:inline-block;width:14px;height:2px;vertical-align:.25em;margin-right:.35rem}
+  .legend .blue{background:#2f5d8c}
+  .legend .orange{background:#b45f36}
+
+  .sect{padding:clamp(1.6rem,4vw,2.4rem) 0 0;border-top:1px solid var(--line)}
+  .sect h2{
+    margin:0 0 .8rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.3rem,3vw,1.7rem);letter-spacing:-.01em;
+  }
+  .sect p{max-width:66ch;color:var(--ink-2);font-size:.92rem;margin:0 0 .7rem}
+  .sect ol{padding-left:1.2rem;font-size:.92rem;color:var(--ink-2);max-width:66ch}
+  .sect li{margin:.35rem 0}
+
+  table{width:100%;border-collapse:collapse;font-size:.86rem;margin:.6rem 0 0}
+  th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left}
+  thead th{
+    font-family:var(--mono);font-size:.62rem;font-weight:400;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);
+  }
+  td.num{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
+
+  .foot{
+    max-width:var(--wide);margin:0 auto;
+    padding:clamp(2rem,5vw,3rem) var(--pad) 4rem;
+    font-size:.85rem;color:var(--ink-3);
+  }
+  .foot p{max-width:64ch;margin:0 0 .6rem}
+  .foot p:last-child{margin-bottom:0}
+
+  @media (max-width:900px){
+    .build{grid-template-columns:1fr}
+    .fig{max-width:32rem}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__in">
+    <a class="back" href="./"><span aria-hidden="true">←</span> 返回</a>
+    <span class="crumb">研究 · 道路阵列</span>
+  </div>
+</div>
+
+<header class="head">
+  <p class="kicker">Research Note</p>
+  <h1>道路阵列的四种构造</h1>
+  <p class="def">每个格子从中心向若干个方向伸出道路，相邻两格在相反方向上的状态必须一致，阵列之外不得有路伸出。下面四个实例都满足：每格编号恰好覆盖全部状态各一次、边界封闭、有路格全连通。</p>
+</header>
+
+<main class="wrap">
+
+  <section class="rules">
+    <h2>统一规则</h2>
+    <ul>
+      <li>每格一个中心，路从中心伸到格子边的中点；斜向道路伸到角点，与对角邻格的路相接。同格的所有路在中心相通。</li>
+      <li>相邻两格在一对相反方向上必须同时有路或同时无路；双色版本还要求颜色一致。邻格在阵列之外时，该方向必须无路。</li>
+      <li>状态按固定朝向区分：只有向上的路与只有向右的路是两种状态，不合并旋转或镜像。</li>
+      <li>“所有道路连通”指任取一段路都能到达其余道路。每个方案都有一个完全无路的格子，连通性只覆盖其余格子。</li>
+      <li>八方向图中两条斜线在四格公共角点交叉时按立交理解，不额外连接；给出的解在此基础上已经连通。</li>
+    </ul>
+  </section>
+
+  <section class="build">
+    <div class="fig"><canvas id="c4" role="img" aria-label="4×4 四方向道路阵列"></canvas></div>
+    <div class="txt">
+      <p class="tag">01 · 四方向 · 单色 · 4×4</p>
+      <h2>2⁴ = 16 个状态各出现一次</h2>
+      <p>上 = 1、右 = 2、下 = 4、左 = 8，每格编号是有路方向的权值和。<code>6 = 2 + 4</code> 表示右、下有路，<code>0</code> 无路，<code>15</code> 四向都有路。</p>
+      <pre class="mx" id="m4"></pre>
+      <p class="why">除左上角无路格，其余 15 格同属一个连通分量；边界封闭。</p>
+    </div>
+  </section>
+
+  <section class="build">
+    <div class="fig"><canvas id="c16" role="img" aria-label="16×16 八方向道路阵列"></canvas></div>
+    <div class="txt">
+      <p class="tag">02 · 八方向 · 单色 · 16×16</p>
+      <h2>2⁸ = 256 个状态各出现一次</h2>
+      <p>每个方向独立取有路或无路，权值依次为上 1、右上 2、右 4、右下 8、下 16、左下 32、左 64、左上 128。<code>24 = 8 + 16</code> 表示右下、下有路；<code>255</code> 表示八向全有路。</p>
+      <pre class="mx mx--sm" id="m16"></pre>
+      <p class="why">0～255 各出现一次，所有水平、竖直、对角方向均与邻格匹配，外圈无路伸出；除左上无路格外 255 格连通，不依赖斜线交叉额外接通。</p>
+    </div>
+  </section>
+
+  <section class="build">
+    <div class="fig"><canvas id="chex" role="img" aria-label="64 个正六边形组成的道路阵列"></canvas></div>
+    <div class="txt">
+      <p class="tag">03 · 六方向 · 单色 · 64 格正六边形</p>
+      <h2>8×8 辅助矩阵到正六边形的同构重绘</h2>
+      <p>辅助坐标中用上、右、左上、下、左、右下六个出口，权值依次为 1、2、4、8、16、32，共 2⁶ = 64 种状态。<code>42 = 2 + 8 + 32</code> 表示辅助坐标中的右、下、右下有路。</p>
+      <pre class="mx" id="mhex"></pre>
+      <p>绘制时第 r 行第 c 列的中心取 <code>x = d(c − r/2)</code>、<code>y = d(√3/2)·r</code>，六边形边长 <code>d/√3</code>、上下各一个顶点。于是六种邻接关系正好变成六个共边邻接。</p>
+      <p class="why">一一对应保证 64 种状态仍各出现一次，匹配与连通关系不变，外边界仍封闭。</p>
+    </div>
+  </section>
+
+  <section class="build">
+    <div class="fig"><canvas id="c9" role="img" aria-label="9×9 四方向双色道路阵列"></canvas></div>
+    <div class="txt">
+      <p class="tag">04 · 四方向 · 双色 · 9×9</p>
+      <h2>3⁴ = 81 个状态各出现一次</h2>
+      <p>每格只向上、右、下、左伸路，每个方向可取无路、蓝路、橙路之一，同一方向至多一种颜色。编号为四位三进制数：<code>上×1 + 右×3 + 下×9 + 左×27</code>，位值 0 无路、1 蓝、2 橙。</p>
+      <p><code>21 = 0×1 + 1×3 + 2×9 + 0×27</code>，即右蓝、下橙；<code>80</code> 四位全 2，四向全橙；<code>40</code> 四位全 1，四向全蓝。</p>
+      <div class="legend"><span><i class="blue"></i>蓝路</span><span><i class="orange"></i>橙路</span></div>
+      <pre class="mx" id="m9"></pre>
+      <p class="why">同格两色可在中心相接换色。按这一约定，除左上无路格外 80 格全部连通；蓝路、橙路各自单独全连通是更强的要求，本实例没有验证。</p>
+    </div>
+  </section>
+
+  <section class="sect">
+    <h2>这些实例如何求得</h2>
+    <p>4×4 用逐格回溯：从左上角按行填入未用过的状态，放之前检查边界和已放的上方、左方邻格，不满足就换下一个状态，用尽则回退。填完再做一次图遍历，只有覆盖全部 15 个非空格才接受。</p>
+    <p>更大规模改用邻格连接上的随机局部搜索：</p>
+    <ol>
+      <li>枚举内部允许的无向邻格连接，每对邻格只记一次，不建立通向阵列外部的连接。</li>
+      <li>固定左上角为无路格，不建立与它相连的道路。</li>
+      <li>为每条内部连接随机赋状态（单色 0/1，双色 0/1/2），两端同步使用这一状态。</li>
+      <li>从每格周围的连接反推编号，统计各编号出现次数。代价取各次数 n 对应的 n(n−1)/2 之和。</li>
+      <li>每次随机挑一条连接改状态，用模拟退火决定是否保留，以跳出局部最优。</li>
+      <li>代价降到 0 即所有编号不重复；格子数等于状态数时也就意味着恰好各一次。再检查连通性后接受。</li>
+    </ol>
+    <p>相邻匹配和边界封闭在这种表示下始终成立，搜索只处理状态唯一性。随机搜索不保证任意规模都能找到解，存在性依据仍是给出的具体矩阵与验证。</p>
+  </section>
+
+  <section class="sect">
+    <h2>验证清单</h2>
+    <table>
+      <thead>
+        <tr><th scope="col">构造</th><th scope="col">格子／状态</th><th scope="col">匹配与边界</th><th scope="col">有路格连通分量</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>4×4 四方向全连通</td><td class="num">16 / 16</td><td>满足</td><td>1 个，含 15 格</td></tr>
+        <tr><td>16×16 八方向</td><td class="num">256 / 256</td><td>满足</td><td>1 个，含 255 格</td></tr>
+        <tr><td>64 格正六边形</td><td class="num">64 / 64</td><td>满足</td><td>1 个，含 63 格</td></tr>
+        <tr><td>9×9 四方向双色</td><td class="num">81 / 81</td><td>满足，颜色一致</td><td>允许中心换色时 1 个，含 80 格</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="foot">
+    <p>三个容易混淆的点：空格不参与连通性要求；八方向解的连通性不依赖交叉斜线额外接通；双色解采用允许在格子中心换色的连通定义。</p>
+    <p>四个矩阵均可直接按文字重画或编程复核，页面图像由矩阵实时渲染。</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  var COL = {
+    ink: '#1b1613',
+    blue: '#2f5d8c',
+    orange: '#b45f36',
+    grid: 'rgba(20,16,13,.10)',
+    bg: '#fbf9f3'
+  };
+
+  // 四方向 / 八方向的单位方向向量，顺序与权值位一致
+  var DIRS = {
+    4: [[0, -1], [1, 0], [0, 1], [-1, 0]],
+    8: [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]]
+  };
+
+  // 辅助坐标的六个出口在平面上的角度（y 向下）
+  var HEX_ANG = [300, 0, 240, 120, 180, 60];
+
+  var DATA = null;
+
+  function fit(canvas){
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return null;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = COL.bg;
+    ctx.fillRect(0, 0, w, h);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  function stateOf(v, d, colors){
+    if (colors === 2) return Math.floor(v / Math.pow(3, d)) % 3;
+    return (v >> d) & 1;
+  }
+
+  function drawSquare(canvas, g){
+    var f = fit(canvas);
+    if (!f) return;
+    var ctx = f.ctx;
+
+    var pad = 4;
+    var cell = Math.min((f.w - 2 * pad) / g.cols, (f.h - 2 * pad) / g.rows);
+    var ox = (f.w - cell * g.cols) / 2;
+    var oy = (f.h - cell * g.rows) / 2;
+
+    ctx.strokeStyle = COL.grid;
+    ctx.lineWidth = 1;
+    for (var r = 0; r < g.rows; r++) {
+      for (var c = 0; c < g.cols; c++) {
+        ctx.strokeRect(ox + c * cell, oy + r * cell, cell, cell);
+      }
+    }
+
+    var dirs = DIRS[g.dirs];
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(1.6, cell * 0.15);
+
+    for (var rr = 0; rr < g.rows; rr++) {
+      for (var cc = 0; cc < g.cols; cc++) {
+        var v = g.data[rr * g.cols + cc];
+        var cx = ox + (cc + 0.5) * cell;
+        var cy = oy + (rr + 0.5) * cell;
+        for (var d = 0; d < dirs.length; d++) {
+          var st = stateOf(v, d, g.colors);
+          if (!st) continue;
+          ctx.strokeStyle = g.colors === 2 ? (st === 1 ? COL.blue : COL.orange) : COL.ink;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + dirs[d][0] * cell / 2, cy + dirs[d][1] * cell / 2);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function drawHex(canvas, g){
+    var f = fit(canvas);
+    if (!f) return;
+    var ctx = f.ctx;
+
+    var pad = 6;
+    var unitW = 8;                                   // 以 d 为单位的宽度
+    var unitH = (Math.sqrt(3) / 2) * (g.rows - 1) + 2 / Math.sqrt(3);
+    var d = Math.min((f.w - 2 * pad) / unitW, (f.h - 2 * pad) / unitH);
+
+    var R = d / Math.sqrt(3);
+    var offX = pad + 4 * d;                          // 最小 x 为 -4d
+    var offY = pad + R;
+
+    function centerX(r, c){ return offX + d * (c - r / 2); }
+    function centerY(r){ return offY + (Math.sqrt(3) / 2) * d * r; }
+
+    ctx.strokeStyle = COL.grid;
+    ctx.lineWidth = 1;
+    for (var r0 = 0; r0 < g.rows; r0++) {
+      for (var c0 = 0; c0 < g.cols; c0++) {
+        var px = centerX(r0, c0), py = centerY(r0);
+        ctx.beginPath();
+        for (var k = 0; k < 6; k++) {
+          var a = (-90 + 60 * k) * Math.PI / 180;
+          var vx = px + Math.cos(a) * R, vy = py + Math.sin(a) * R;
+          if (k === 0) ctx.moveTo(vx, vy); else ctx.lineTo(vx, vy);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    ctx.strokeStyle = COL.ink;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(1.6, d * 0.15);
+
+    for (var r = 0; r < g.rows; r++) {
+      for (var c = 0; c < g.cols; c++) {
+        var v = g.data[r * g.cols + c];
+        var cx = centerX(r, c), cy = centerY(r);
+        for (var i = 0; i < 6; i++) {
+          if (!((v >> i) & 1)) continue;
+          var ang = HEX_ANG[i] * Math.PI / 180;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(ang) * d / 2, cy + Math.sin(ang) * d / 2);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function fillMatrix(el, g){
+    var maxLen = String(Math.pow(g.colors === 2 ? 3 : 2, g.dirs) - 1).length;
+    var lines = [];
+    for (var r = 0; r < g.rows; r++) {
+      var row = [];
+      for (var c = 0; c < g.cols; c++) {
+        row.push(String(g.data[r * g.cols + c]).padStart(maxLen, ' '));
+      }
+      lines.push(row.join(' '));
+    }
+    el.textContent = lines.join('\n');
+  }
+
+  function renderAll(){
+    if (!DATA) return;
+    drawSquare(document.getElementById('c4'), DATA.g4);
+    drawSquare(document.getElementById('c16'), DATA.g16);
+    drawHex(document.getElementById('chex'), DATA.hex);
+    drawSquare(document.getElementById('c9'), DATA.g9);
+  }
+
+  fetch('./roads-data.json', { cache: 'no-cache' })
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d){
+      DATA = d;
+      fillMatrix(document.getElementById('m4'), d.g4);
+      fillMatrix(document.getElementById('m16'), d.g16);
+      fillMatrix(document.getElementById('mhex'), d.hex);
+      fillMatrix(document.getElementById('m9'), d.g9);
+      renderAll();
+
+      var t;
+      window.addEventListener('resize', function(){
+        clearTimeout(t);
+        t = setTimeout(renderAll, 120);
+      });
+    })
+    .catch(function(){
+      var fig = document.querySelector('.fig');
+      if (fig) fig.insertAdjacentHTML('beforeend', '<p style="font-family:ui-monospace;font-size:.7rem;color:#8b8175;padding:.5rem">矩阵数据未能加载</p>');
+    });
+})();
+</script>
+</body>
+</html>
