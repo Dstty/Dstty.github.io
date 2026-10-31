@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dstty</title>
+<title>首页</title>
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
 <script>
 (function(){
   var t = null;
-  try { t = localStorage.getItem('dstty-theme'); } catch (e) {}
+  try { t = localStorage.getItem('site-theme'); } catch (e) {}
   document.documentElement.setAttribute('data-theme', t || 'dark');
 })();
 </script>
@@ -256,14 +256,14 @@
 (function(){
   var root = document.documentElement;
   var btn = document.getElementById('themeBtn');
-  var KEY = 'dstty-theme';
+  var KEY = 'site-theme';
   function paint(t){
     root.setAttribute('data-theme', t);
     if (btn) {
       btn.textContent = t === 'dark' ? '☀' : '☾';
       btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
     }
-    if (typeof window.dsttyThemeChanged === 'function') window.dsttyThemeChanged();
+    if (typeof window.onThemeChanged === 'function') window.onThemeChanged();
   }
   var saved = null;
   try { saved = localStorage.getItem(KEY); } catch (e) {}
