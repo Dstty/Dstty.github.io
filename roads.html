@@ -652,11 +652,16 @@
       view.apply();
     });
 
-    // 收起再展开时画布尺寸会变，需要重绘
+    // 收起时移除高亮，展开时重绘画布并恢复
     var box = view.probe.closest('details');
     if (box) {
       box.addEventListener('toggle', function(){
-        if (box.open) view.apply();
+        if (box.open) {
+          view.apply();
+        } else {
+          view.index = -1;
+          drawMain(view);
+        }
       });
     }
 
