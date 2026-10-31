@@ -513,31 +513,37 @@ C = {(h, 0)}</pre>
     var sx = -(pan.x - ox * cell);                // 亚像素偏移
     var sy = -(pan.y - oy * cell);
 
-    // 晶胞边界：y = kH 的水平线，以及 x = qs + jW 的斜线
+    // 晶胞边界：沿格线走成阶梯，水平边在 y = qH，竖边在 x = qs + jW
     if (showBorder) {
-      var qTop = Math.floor(oy / H), qBot = Math.floor((oy + rows) / H);
+      var qTop = Math.floor(oy / H) - 1;
+      var qBot = Math.floor((oy + rows) / H) + 1;
       ctx.strokeStyle = CV.mark;
       ctx.lineWidth = 1;
       ctx.beginPath();
 
-      for (var k = qTop; k <= qBot; k++) {
-        var yl = sy + (k * H - oy) * cell;
-        if (yl >= -0.5 && yl <= size.h + 0.5) {
-          ctx.moveTo(0, Math.round(yl) + 0.5);
-          ctx.lineTo(size.w, Math.round(yl) + 0.5);
-        }
-      }
+      for (var q = qTop; q <= qBot; q++) {
+        var yTop = sy + (q * H - oy) * cell;
+        var yBot = sy + ((q + 1) * H - oy) * cell;
+        var jS = Math.floor((ox - q * s) / W) - 2;
+        var jE = Math.ceil((ox + cols - q * s) / W) + 2;
 
-      for (var bq = qTop - 1; bq <= qBot; bq++) {
-        var ya = Math.max(bq * H, oy), yb = Math.min((bq + 1) * H, oy + rows);
-        if (yb <= ya) continue;
-        var jStart = Math.floor((ox - bq * s) / W) - 1;
-        var jEnd = Math.ceil((ox + cols - bq * s) / W) + 1;
-        for (var j = jStart; j <= jEnd; j++) {
-          var xa = bq * s + j * W, xb = (bq + 1) * s + j * W;
-          var t0 = (ya - bq * H) / H, t1 = (yb - bq * H) / H;
-          ctx.moveTo(sx + (xa + (xb - xa) * t0 - ox) * cell, sy + (ya - oy) * cell);
-          ctx.lineTo(sx + (xa + (xb - xa) * t1 - ox) * cell, sy + (yb - oy) * cell);
+        // 水平边：该行带的顶边，长度 W
+        if (yTop >= -0.5 && yTop <= size.h + 0.5) {
+          var hy = Math.round(yTop) + 0.5;
+          for (var j = jS; j <= jE; j++) {
+            var hx = sx + (q * s + j * W - ox) * cell;
+            ctx.moveTo(hx, hy);
+            ctx.lineTo(hx + W * cell, hy);
+          }
+        }
+
+        // 竖直边：该行带的左边界，高度 H
+        if (yBot >= -0.5 && yTop <= size.h + 0.5) {
+          for (var jv = jS; jv <= jE; jv++) {
+            var vx = Math.round(sx + (q * s + jv * W - ox) * cell) + 0.5;
+            ctx.moveTo(vx, yTop);
+            ctx.lineTo(vx, yBot);
+          }
         }
       }
       ctx.stroke();
