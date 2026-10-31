@@ -7,6 +7,12 @@ function save(){history.push({time:time.text(),ropes:ropes.map(r=>({...r,remaini
 function message(text,error=false){get('status').textContent=text;get('status').dataset.error=String(error);}
 function rope(){return {remaining:one,leftBurn:zero,rightBurn:zero,left:false,right:false,used:false,done:false};}
 function short(v){return Number(v.toFixed(8)).toString();}
+function radixText(value,base){
+ const b=BigInt(base);let whole=value.n/value.d,remainder=value.n%value.d;
+ if(!remainder)return whole.toString(base)+'.0';
+ let digits='';while(remainder){remainder*=b;digits+=(remainder/value.d).toString(base);remainder%=value.d;}
+ return whole.toString(base)+'.'+digits;
+}
 function paint(progress=0){
  const dt=animation?animation.delta.number()*progress:0;
  visuals.forEach(({r,fiber,left,right,label})=>{
@@ -15,7 +21,9 @@ function paint(progress=0){
   left.hidden=r.done||!r.left||remaining<1e-12;right.hidden=r.done||!r.right||remaining<1e-12;
   label.textContent=r.done?'已燃尽':animation&&r.used?'剩余约 '+short(remaining*100)+'% 燃烧量':r.used?'剩余 '+r.remaining.text()+' 小时单端燃烧量':'尚未点火';
  });
- get('clock').textContent=animation?'≈ '+short(time.number()+dt)+' h':time.text()+' h';
+ const now=time.number()+dt;
+ get('clock').textContent=animation?'≈ '+short(now)+' h':radixText(time,10)+' h';
+ get('clock-binary').textContent=(animation?'≈ '+now.toString(2):radixText(time,2))+'₂ h';
  get('clock-label').textContent=animation?'时间流动中 · 到事件时停下':'当前已知时刻';
 }
 function render(){
