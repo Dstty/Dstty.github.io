@@ -89,6 +89,7 @@
     gap:clamp(1rem,3vw,2.2rem);align-items:start;
     padding:clamp(1.4rem,3.5vw,2.2rem) 0;border-top:1px solid var(--line);
   }
+  .build--hex{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
   .fig{
     border:1px solid var(--line);border-radius:2px;
     background:var(--paper-2);padding:.6rem;
@@ -237,7 +238,7 @@
     </div>
   </section>
 
-  <section class="build">
+  <section class="build build--hex">
     <div class="col">
       <div class="fig"><canvas id="chex" role="img" aria-label="64 个正六边形组成的道路阵列"></canvas></div>
       <div class="probe">
@@ -417,14 +418,21 @@
   }
 
   function drawHex(canvas, g, hl){
-    var f = fit(canvas);
-    if (!f) return;
-    var ctx = f.ctx;
+    var cw = canvas.clientWidth;
+    if (!cw) return;
 
     var pad = 6;
     var unitW = (g.cols - 1) + (g.rows - 1) / 2 + 1;   // 列跨度 + 行错位累积 + 两侧半宽
     var unitH = (Math.sqrt(3) / 2) * (g.rows - 1) + 2 / Math.sqrt(3);
-    var d = Math.min((f.w - 2 * pad) / unitW, (f.h - 2 * pad) / unitH);
+    var d = (cw - 2 * pad) / unitW;
+
+    // 画布高度贴合内容，避免上下留白
+    var wantH = Math.round(d * unitH + 2 * pad);
+    if (Math.abs(canvas.clientHeight - wantH) > 1) canvas.style.height = wantH + 'px';
+
+    var f = fit(canvas);
+    if (!f) return;
+    var ctx = f.ctx;
 
     var R = d / Math.sqrt(3);
     var offX = pad + 4 * d;                          // 最小 x 为 -4d
