@@ -156,9 +156,9 @@
 </style>
 
 <link rel="stylesheet" href="./rope-lab.css?v=20261031">
-<link rel="stylesheet" href="./rope-game.css?v=20261031-free2">
+<link rel="stylesheet" href="./rope-game.css?v=20261031-clock">
 <script defer src="./rope-core.js?v=20261031"></script>
-<script defer src="./rope-lab.js?v=20261031-free2"></script>
+<script defer src="./rope-lab.js?v=20261031-clock"></script>
 </head>
 <body>
 
@@ -378,7 +378,7 @@ print(f(Fraction(1)))  # 1/8</code></pre>
 <p>每根绳子单端燃烧一小时。自由选择端点点火，观察单端与双端燃烧，再推进到下一次燃尽。每次停下都是一个精确已知的时刻，你可以继续点火、添加绳子，探索自己的计时构造。</p>
 <p id="rope-status" class="rope-status" role="status" aria-live="polite"></p>
 <div id="rope-stage">
-<div class="rope-dashboard"><div><span id="rope-clock-label">当前已知时刻</span><output id="rope-clock"></output></div><div><span>实验模式 / 已用绳子</span><output id="rope-summary"></output></div></div>
+<div class="rope-dashboard"><div><span id="rope-clock-label">当前已知时刻</span><output id="rope-clock"></output><small id="rope-clock-binary" class="rope-clock-binary" aria-label="对应的二进制小数"></small></div><div><span>实验模式 / 已用绳子</span><output id="rope-summary"></output></div></div>
 <div class="rope-controls"><button type="button" id="rope-next">燃烧到下一事件</button><button type="button" id="rope-skip" hidden>跳过动画</button><button type="button" id="rope-add">添加一根绳子</button><button type="button" id="rope-undo">撤销</button><button type="button" id="rope-reset">重置实验</button><label for="rope-speed">动画速度 <select id="rope-speed"><option value="1">正常</option><option value="2">2 倍</option><option value="4">4 倍</option></select></label></div>
 <p class="rope-hint">同一时刻可点燃多个端点。推进后，火焰随时间移动，直到下一根绳子燃尽才重新开放点火；动画中的时钟读数只用于观察。</p>
 <div id="rope-ropes" class="rope-ropes" aria-label="点击绳子端点来点火"></div>
