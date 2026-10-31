@@ -24,7 +24,9 @@ function paint(progress=0){
  });
  const now=time.number()+dt;
  get('clock').textContent=animation?'≈ '+short(now)+' h':radixText(time,10)+' h';
- get('clock-binary').textContent=(animation?'≈ '+now.toString(2):radixText(time,2))+'₂ h';
+ const binary=animation?now.toString(2):radixText(time,2);
+ const dot=binary.indexOf('.'),limit=dot<0?binary.length:dot+17;
+ get('clock-binary').textContent=(animation?'≈ '+binary.slice(0,limit)+(binary.length>limit?'…':''):binary)+'₂ h';
  get('clock-label').textContent=animation?'时间流动中 · 到事件时停下':'当前已知时刻';
 }
 function render(){
