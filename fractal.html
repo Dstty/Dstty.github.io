@@ -1,0 +1,2553 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>九宫格分形生成器</title>
+<style>
+  :root {
+    --bg: #0b0e12;
+    --panel: #12161c;
+    --line: #232a33;
+    --ink: #e8e4dc;
+    --muted: #8a9199;
+    --amber: #e0a458;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1100px 520px at 12% -12%, rgba(224, 164, 88, .10), transparent 62%),
+      radial-gradient(900px 500px at 100% 110%, rgba(88, 182, 194, .07), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 64px) clamp(18px, 4vw, 40px) 64px;
+  }
+  header { margin-bottom: clamp(26px, 4vw, 44px); }
+  .kicker {
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", Georgia, serif;
+    font-size: clamp(2rem, 4.6vw, 3.2rem);
+    font-weight: 600;
+    line-height: 1.08;
+    margin: 0 0 14px;
+    letter-spacing: -.01em;
+  }
+  .lede {
+    margin: 0;
+    max-width: 58ch;
+    color: #969da5;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .lede b { color: var(--ink); font-weight: 500; }
+  main {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 26px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .group > .label {
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tools .spacer { flex: 1; }
+  .select {
+    background: #0b0f14;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 3px 4px;
+    font: inherit;
+    font-size: 11px;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    cursor: pointer;
+  }
+  .select:focus { outline: none; border-color: var(--amber); }
+  .rules {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 396px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .rules::-webkit-scrollbar { width: 6px; }
+  .rules::-webkit-scrollbar-thumb { background: #2b323c; border-radius: 3px; }
+  .rule-row { display: flex; align-items: center; gap: 8px; }
+  .rule-tag {
+    width: 24px;
+    flex: none;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .mini { display: grid; gap: 3px; }
+  .mini .cell {
+    padding: 0;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: #0b0f14;
+    cursor: pointer;
+    transition: border-color .1s;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+  .mini .cell:hover { border-color: #4a5666; }
+  .swatch {
+    width: 22px; height: 22px;
+    flex: none;
+    padding: 0;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,.25);
+    cursor: pointer;
+    transition: transform .1s;
+  }
+  .swatch:hover { transform: scale(1.08); }
+  .note {
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+  .note b { color: var(--ink); font-weight: 500; }
+
+  .picker {
+    position: fixed;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(3, 26px);
+    gap: 6px;
+    padding: 9px;
+    background: #141921;
+    border: 1px solid #2f3844;
+    border-radius: 10px;
+    box-shadow: 0 14px 36px rgba(0,0,0,.55);
+  }
+  .picker.hidden { display: none; }
+  .pick {
+    width: 26px; height: 26px;
+    padding: 0;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,.18);
+    cursor: pointer;
+    transition: transform .1s;
+  }
+  .pick:hover { transform: scale(1.08); }
+  .pick.on { outline: 2px solid var(--amber); outline-offset: 1px; }
+
+  textarea.rules-text {
+    width: 100%;
+    min-height: 64px;
+    background: #0b0f14;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    padding: 8px 10px;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    line-height: 1.65;
+    resize: vertical;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  textarea.rules-text:focus { outline: none; border-color: var(--amber); }
+
+  .btn {
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: #445063; background: rgba(255,255,255,.08); }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn:disabled:hover { border-color: var(--line); background: rgba(255,255,255,.05); }
+  .btn.tiny { padding: 4px 9px; font-size: 11px; }
+  .btn.primary {
+    background: rgba(224,164,88,.13);
+    border-color: rgba(224,164,88,.55);
+    color: #f0c68e;
+  }
+  .btn.primary:hover { background: rgba(224,164,88,.2); }
+  input[type="range"] { width: 100%; accent-color: var(--amber); height: 20px; }
+  .kline {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .kline b { color: var(--ink); font-size: 14px; }
+  .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sw {
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 4px;
+    gap: 3px;
+    transition: border-color .15s, transform .15s;
+  }
+  .sw:hover { transform: translateY(-1px); }
+  .sw[aria-pressed="true"] { border-color: var(--amber); }
+  .sw i { width: 7px; height: 7px; border-radius: 2px; display: block; }
+
+  .stage {
+    background: #0a0d11;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0a0d11;
+  }
+  .canvas-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.035), transparent 62%);
+  }
+  canvas#view {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  @media (max-width: 560px) {
+    .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .meta div { display: flex; flex-direction: column; gap: 3px; }
+  .meta span { color: var(--ink); font-size: 13px; letter-spacing: .02em; }
+  .err {
+    color: #e88a7a;
+    font-size: 11.5px;
+    min-height: 16px;
+    font-family: Consolas, "Cascadia Mono", ui-monospace, monospace;
+  }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+  .tabs button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.02);
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button[aria-pressed="true"] {
+    color: var(--ink);
+    border-color: var(--amber);
+    background: rgba(224,164,88,.09);
+  }
+  .page-hidden { display: none !important; }
+  #curve-preview {
+    background: #0b0f14;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    width: 300px;
+    height: 300px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  /* 站点返回入口 */
+  .site-back{
+    position:fixed;top:14px;right:14px;z-index:200;
+    font-family:Consolas,"Cascadia Mono",ui-monospace,monospace;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:#8a9199;text-decoration:none;
+    background:rgba(11,14,18,.88);
+    border:1px solid #232a33;border-radius:8px;
+    padding:8px 12px;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    transition:color .2s ease,border-color .2s ease;
+  }
+  .site-back:hover{color:#e8e4dc;border-color:#3a4452}
+</style>
+</head>
+<body>
+<a class="site-back" href="./">← 返回</a>
+<div class="wrap">
+  <header>
+    <div class="kicker">Variable-Scale Substitution</div>
+    <h1>九宫格分形</h1>
+    <p class="lede">每个符号有自己的阶数和颜色：<b>1</b> 可以是 3×3、<b>a</b> 可以是 2×2。字母表只有 1 时就是普通掩码。</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button type="button" data-page="sub" aria-pressed="true">替换系统</button>
+    <button type="button" data-page="curve" aria-pressed="false">曲线生成</button>
+  </nav>
+
+  <main id="page-sub">
+    <section class="panel">
+      <div class="group">
+        <div class="label">规则</div>
+        <div class="tools">
+          <button class="btn tiny" type="button" id="add-sym">+ 符号</button>
+          <button class="btn tiny" type="button" id="del-sym">−</button>
+          <span class="spacer"></span>
+          <span class="note" id="dim-note"></span>
+        </div>
+        <div class="rules" id="rules"></div>
+        <div class="note">点格子循环 <b>0 → 1 → a → b → …</b>；色块换颜色，下拉改该符号阶数</div>
+      </div>
+
+      <div class="group">
+        <div class="label">规则字符串</div>
+        <textarea class="rules-text" id="rules-text" spellcheck="false"></textarea>
+        <div class="row" style="display:flex;gap:8px">
+          <button class="btn" id="copy-rules" type="button">复制</button>
+          <button class="btn" id="apply-rules" type="button">应用</button>
+        </div>
+        <div class="err" id="err"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">迭代</div>
+        <div class="kline"><span>层数 k</span><b id="kval">5</b></div>
+        <input type="range" id="k" min="1" max="7" step="1" value="5">
+        <div class="kline"><span id="kgrid">—</span><span id="kmax">max 7</span></div>
+      </div>
+
+      <div class="group">
+        <div class="label">配色</div>
+        <div class="swatches" id="palettes"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">操作</div>
+        <div class="row" style="display:flex;gap:8px">
+          <button class="btn" id="play" type="button">逐层播放</button>
+          <button class="btn primary" id="save" type="button">导出 PNG</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage">
+      <div class="canvas-wrap">
+        <canvas id="view" width="720" height="720"></canvas>
+      </div>
+      <div class="meta">
+        <div>叶子<span id="m-live">—</span></div>
+        <div>层数<span id="m-k">—</span></div>
+        <div>阶数<span id="m-bases">—</span></div>
+        <div>维数<span id="m-dim">—</span></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="page-curve" class="page-hidden">
+    <section class="panel">
+      <div class="group">
+        <div class="label">规则</div>
+        <textarea class="rules-text" id="curve-str" spellcheck="false" style="min-height:92px"></textarea>
+        <div class="row" style="display:flex;gap:8px">
+          <button class="btn" id="curve-copy" type="button">复制</button>
+          <button class="btn" id="curve-apply" type="button">应用</button>
+        </div>
+        <div class="note">每个点写成 <b>x,y[,方向]</b>（方向 0–3，指从该点出发的那段），最后一点可省略；深度写 <b>k=</b>。编辑器里：拖圆点移动，点箭头换方向，双击线段加点，右键线段删段</div>
+        <div class="err" id="curve-err"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">模板编辑器</div>
+        <canvas id="curve-preview" width="300" height="300"></canvas>
+      </div>
+
+      <div class="group">
+        <div class="label">网格吸附</div>
+        <div class="tools" id="curve-grid">
+          <button class="btn tiny" type="button" data-grid="none" aria-pressed="true">无</button>
+          <button class="btn tiny" type="button" data-grid="square" aria-pressed="false">正方形</button>
+          <button class="btn tiny" type="button" data-grid="tri" aria-pressed="false">三角形</button>
+        </div>
+        <div class="note">拖动点时吸附到格点；双击线段加点也会吸附</div>
+      </div>
+
+      <div class="group">
+        <div class="label">贴合方向</div>
+        <div class="tools" id="curve-variants">
+          <button class="btn tiny" type="button" data-variant="0">正向</button>
+          <button class="btn tiny" type="button" data-variant="1">正向·镜像</button>
+          <button class="btn tiny" type="button" data-variant="2">反向</button>
+          <button class="btn tiny" type="button" data-variant="3">反向·镜像</button>
+        </div>
+        <div class="note">同一条线段可以按这四种方式贴合模板；换方向整条曲线会翻转或镜像</div>
+      </div>
+
+      <div class="group">
+        <div class="label">迭代</div>
+        <div class="tools" id="curve-mode">
+          <button class="btn tiny" type="button" data-cmode="depth" aria-pressed="true">按深度</button>
+          <button class="btn tiny" type="button" data-cmode="auto" aria-pressed="false">自适应到像素</button>
+        </div>
+        <div class="kline"><span>深度 k</span><b id="ck-val">5</b></div>
+        <input type="range" id="ck" min="1" max="20" step="1" value="5">
+        <div class="kline"><span id="ck-segs">—</span><span id="ck-max">max 20</span></div>
+        <div class="err" id="ck-err"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">着色</div>
+        <div class="tools" id="curve-rainbow">
+          <button class="btn tiny" type="button" data-rainbow="0" aria-pressed="true">单色</button>
+          <button class="btn tiny" type="button" data-rainbow="1" aria-pressed="false">彩虹</button>
+        </div>
+        <div class="note">彩虹按线段沿路径的顺序映射色相</div>
+      </div>
+
+      <div class="group">
+        <div class="label">动画</div>
+        <div class="kline"><span>时长</span><b id="anim-dur-val">12 s</b></div>
+        <input type="range" id="anim-dur" min="2" max="20" step="1" value="12">
+        <div class="kline"><span>分辨率</span><b id="anim-res-val">480</b></div>
+        <input type="range" id="anim-res" min="240" max="800" step="80" value="480">
+        <div class="note">时长同时作用于预览和 GIF，分辨率只影响 GIF</div>
+      </div>
+
+      <div class="group">
+        <div class="label">操作</div>
+        <button class="btn primary" id="curve-save" type="button">导出 PNG</button>
+        <button class="btn" id="curve-play" type="button" style="margin-top:8px">预览动画</button>
+        <button class="btn" id="curve-gif" type="button" style="margin-top:8px">导出 GIF（逐段动画）</button>
+      </div>
+    </section>
+
+    <section class="stage">
+      <div class="canvas-wrap">
+        <canvas id="curve-view" width="720" height="720"></canvas>
+      </div>
+      <div class="meta">
+        <div>线段<span id="cm-segs">—</span></div>
+        <div>深度<span id="cm-k">—</span></div>
+        <div>维数<span id="cm-dim">—</span></div>
+        <div>耗时<span id="cm-ms">—</span></div>
+      </div>
+    </section>
+  </main>
+
+</div>
+
+<div class="picker hidden" id="picker"></div>
+
+<script>
+"use strict";
+
+const PALETTES = [
+  { name: "墨", bg: [13,16,21], fg: [236,231,222],
+    markers: [[224,164,88],[88,182,194],[190,203,110],[217,127,106],
+              [143,168,224],[180,138,208],[120,190,160],[230,150,190]] },
+  { name: "纸", bg: [242,238,230], fg: [26,29,34],
+    markers: [[168,98,30],[43,122,134],[110,120,30],[170,70,60],
+              [50,90,160],[120,70,150],[40,130,100],[170,90,130]] },
+  { name: "铜", bg: [20,15,12], fg: [240,194,123],
+    markers: [[224,118,60],[143,184,168],[200,170,90],[180,90,70],
+              [120,150,170],[160,120,180],[100,160,120],[210,140,160]] },
+  { name: "冷", bg: [10,18,22], fg: [168,216,210],
+    markers: [[107,166,160],[79,127,156],[140,180,120],[200,140,110],
+              [110,140,200],[160,130,190],[90,170,140],[190,120,140]] },
+];
+
+const LETTERS = "abcdefghij";
+const MAX_MARKERS = 10;
+const MAX_LEAVES = 4e5;
+const STORE_KEY = "fractal9.v9";
+const RENDER = 2400;
+const MIN_BLOCK_PX = 0.5;    // smallest block we still bother drawing
+
+/* ---------- defaults ---------- */
+
+function emptyGrid(n) {
+  return Array.from({ length: n }, () => Array(n).fill("0"));
+}
+
+function defaultRules() {
+  // Sierpinski carpet: 3x3 with the centre removed
+  return {
+    "1": { base: 3, cells: [["1","1","1"],["1","0","1"],["1","1","1"]] },
+  };
+}
+
+function defaultColors() {
+  return { "1": 8 };   // 0..7 marker slots, 8 = foreground
+}
+
+const state = {
+  rules: defaultRules(),
+  markers: [],
+  colors: defaultColors(),
+  k: 5,
+  palette: 0,
+};
+
+const $ = id => document.getElementById(id);
+const view = $("view");
+const vctx = view.getContext("2d");
+
+/* ---------- rule string ---------- */
+
+/*
+   Compact, hand-editable format:
+     1=101/010/100; k=5; c=8
+     1=a1/1b; a=10/00; b=00/01; k=8; c=8,0,1
+   rows separated by "/", symbols by ";", colours follow ["1", ...markers]
+*/
+
+function rulesToString() {
+  const parts = [];
+  for (const name of ["1", ...state.markers]) {
+    const rule = state.rules[name];
+    parts.push(name + "=" + rule.cells.map(row => row.join("")).join("/"));
+  }
+  parts.push("k=" + state.k);
+  parts.push("colors=" + ["1", ...state.markers].map(n => {
+    const v = state.colors[n];
+    return Number.isInteger(v) ? v : (n === "1" ? 8 : 0);
+  }).join(","));
+  return parts.join("; ");
+}
+
+function parseRulesString(text) {
+  const chunks = String(text).split(";").map(s => s.trim()).filter(Boolean);
+  if (!chunks.length) return null;
+  const rules = {};
+  const order = [];
+  let k = null;
+  let colorRaw = null;
+
+  for (const chunk of chunks) {
+    const eq = chunk.indexOf("=");
+    if (eq < 0) return null;
+    const key = chunk.slice(0, eq).trim();
+    const val = chunk.slice(eq + 1).trim();
+    if (key === "k") {
+      const n = Number(val);
+      if (!Number.isInteger(n) || n < 1) return null;
+      k = n;
+      continue;
+    }
+    // "c" is also a symbol name, so a colour segment is only recognised when
+    // the value is pure digits/commas; "c=a0/cd" is symbol c's rule
+    if ((key === "c" || key === "colors") && /^[0-9,\s]+$/.test(val)) {
+      colorRaw = val.split(",").map(s => Number(s.trim()));
+      continue;
+    }
+    if (key !== "1" && !/^[a-j]$/.test(key)) return null;
+    if (rules[key]) return null;
+    const rows = val.split("/").map(r => r.trim());
+    const base = rows.length;
+    if (base < 2 || base > 8) return null;
+    const cells = [];
+    for (const row of rows) {
+      const toks = row.match(/[01a-j]\*{0,3}/g) || [];
+      if (toks.length !== base) return null;
+      cells.push(toks);
+    }
+    rules[key] = { base, cells };
+    order.push(key);
+  }
+  if (!rules["1"]) return null;
+
+  const markers = order.filter(n => n !== "1").sort();
+  const colors = {};
+  ["1", ...markers].forEach((name, i) => {
+    const v = colorRaw && colorRaw[i];
+    colors[name] = Number.isInteger(v) && v >= 0 && v <= 8 ? v : (name === "1" ? 8 : i % 8);
+  });
+
+  for (const name of ["1", ...markers]) {
+    for (const row of rules[name].cells) {
+      for (const tok of row) {
+        const ch = cellParts(tok).ch;
+        if (ch !== "0" && ch !== "1" && !rules[ch]) return null;
+      }
+    }
+  }
+
+  return { markers, rules, colors, k: k || 5 };
+}
+
+function refreshRuleText() {
+  $("rules-text").value = rulesToString();
+}
+
+/* ---------- persistence ---------- */
+
+function persist() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      rules: state.rules, markers: state.markers, colors: state.colors,
+      k: state.k, palette: state.palette,
+    }));
+  } catch (e) { /* storage blocked, ignore */ }
+}
+
+function restore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !s.rules || !s.rules["1"]) return false;
+    const markers = (s.markers || []);
+    const parsed = parseRulesString(
+      Object.keys(s.rules).map(n => n + "=" + s.rules[n].cells.map(r => r.join("")).join("/")).join("; ")
+      + "; k=" + (s.k || 5)
+      + "; c=" + ["1", ...markers].map(n => (s.colors && s.colors[n] != null) ? s.colors[n] : (n === "1" ? 8 : 0)).join(",")
+    );
+    if (!parsed) return false;
+    applyParsed(parsed);
+    state.palette = typeof s.palette === "number" ? s.palette : 0;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function applyParsed(p) {
+  state.markers = p.markers;
+  state.rules = p.rules;
+  state.colors = p.colors;
+  state.k = p.k;
+}
+
+/* ---------- geometry ---------- */
+
+function leafCount(k) {
+  let counts = { "1": 1 };
+  for (let d = 0; d < k; d++) {
+    const next = {};
+    for (const name of Object.keys(counts)) {
+      const rule = state.rules[name];
+      if (!rule) continue;
+      const cnt = counts[name];
+      for (const row of rule.cells) {
+        for (const v of row) {
+          const ch = cellParts(v).ch;
+          if (ch !== "0") next[ch] = (next[ch] || 0) + cnt;
+        }
+      }
+    }
+    counts = next;
+  }
+  let total = 0;
+  for (const v of Object.values(counts)) total += v;
+  return total;
+}
+
+/* largest cumulative zoom factor after k rounds, i.e. 1 / smallest block.
+   Each symbol divides by its own base, so a 6x6 symbol only applies on the
+   branch that actually reaches it. */
+function maxScale(k) {
+  let cur = { "1": 1 };
+  for (let d = 0; d < k; d++) {
+    const next = {};
+    for (const name of Object.keys(cur)) {
+      const rule = state.rules[name];
+      if (!rule) continue;
+      const prod = cur[name] * rule.base;
+      for (const row of rule.cells) {
+        for (const v of row) {
+          const ch = cellParts(v).ch;
+          if (ch === "0") continue;
+          if (!next[ch] || next[ch] < prod) next[ch] = prod;
+        }
+      }
+    }
+    cur = next;
+  }
+  let m = 0;
+  for (const v of Object.values(cur)) if (v > m) m = v;
+  return m || 1;
+}
+
+function kMax() {
+  // per-branch rendering already stops at sub-pixel size, so the slider cap can
+  // be generous: shallow branches keep subdividing until they match the grain
+  // of the deep ones instead of being cut off early
+  return 12;
+}
+
+/* dimension by the Moran / Perron equation: rho(M_s) = 1, where
+   M_s[i][j] = (# of j inside i's rule) / base_i^s */
+function fractalDim() {
+  const names = ["1", ...state.markers];
+  const n = names.length;
+  const bases = names.map(s => state.rules[s].base);
+  const C = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (const row of state.rules[names[i]].cells) {
+      for (const tok of row) {
+        const ch = cellParts(tok).ch;
+        if (ch === "0") continue;
+        const j = names.indexOf(ch);
+        if (j >= 0) C[i][j]++;
+      }
+    }
+  }
+  const rho = s => {
+    const M = C.map((row, i) => row.map(c => c / Math.pow(bases[i], s)));
+    // Power iteration oscillates on a bipartite / periodic matrix (e.g. two
+    // symbols that only replace each other), so iterate on M + I instead:
+    // its spectrum is shifted by 1, the dominant eigenvalue becomes unique,
+    // and rho(M) = rho(M + I) - 1.
+    const B = M.map((row, i) => row.map((c, j) => c + (i === j ? 1 : 0)));
+    let v = new Array(n).fill(1);
+    let r = 0;
+    let prev = 0;
+    for (let it = 0; it < 2000; it++) {
+      const w = new Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        if (!v[i]) continue;
+        for (let j = 0; j < n; j++) w[j] += v[i] * B[i][j];
+      }
+      let mx = 0;
+      for (const x of w) if (x > mx) mx = x;
+      if (mx === 0) return 0;
+      r = mx;
+      for (let j = 0; j < n; j++) v[j] = w[j] / mx;
+      if (Math.abs(r - prev) <= 1e-13 * Math.max(1, r)) break;
+      prev = r;
+    }
+    return Math.max(0, r - 1);
+  };
+  if (rho(0) <= 1) return 0;      // finite set, nothing grows
+  let lo = 0, hi = 12;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (rho(mid) > 1) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function setKRange() {
+  const kmax = kMax();
+  state.k = Math.max(1, Math.min(state.k, kmax));
+  const slider = $("k");
+  slider.max = String(kmax);
+  slider.value = String(state.k);
+  $("kmax").textContent = "max " + kmax;
+  $("kval").textContent = String(state.k);
+}
+
+/* ---------- colors ---------- */
+
+function colorOptions(pal) {
+  return [...pal.markers, pal.fg];
+}
+
+function colorOf(name, pal) {
+  const i = state.colors[name];
+  const opts = colorOptions(pal);
+  if (!Number.isInteger(i) || i < 0 || i >= opts.length) return pal.fg;
+  return opts[i];
+}
+
+function buildPaletteUI() {
+  const box = $("palettes");
+  box.innerHTML = "";
+  PALETTES.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.className = "sw";
+    b.type = "button";
+    b.title = p.name;
+    b.setAttribute("aria-pressed", i === state.palette ? "true" : "false");
+    b.style.background = `rgb(${p.bg.join(",")})`;
+    b.innerHTML = `<i style="background:rgb(${p.fg.join(",")})"></i>
+                   <i style="background:rgb(${p.markers[0].join(",")})"></i>
+                   <i style="background:rgb(${p.markers[1].join(",")})"></i>`;
+    b.addEventListener("click", () => {
+      state.palette = i;
+      buildPaletteUI();
+      closePicker();
+      draw();
+      if (!$("page-curve").classList.contains("page-hidden")) {
+        drawEditor();
+        drawCurve();
+      }
+      persist();
+    });
+    box.appendChild(b);
+  });
+}
+
+/* ---------- colour picker ---------- */
+
+let pickerFor = null;
+
+function closePicker() {
+  const box = $("picker");
+  box.classList.add("hidden");
+  box.innerHTML = "";
+  pickerFor = null;
+}
+
+function openPicker(name, anchor) {
+  const box = $("picker");
+  box.innerHTML = "";
+  const pal = PALETTES[state.palette];
+  colorOptions(pal).forEach((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pick";
+    b.style.background = `rgb(${c.join(",")})`;
+    if (state.colors[name] === i) b.classList.add("on");
+    b.setAttribute("aria-label", `颜色 ${i + 1}`);
+    b.addEventListener("click", e => {
+      e.stopPropagation();
+      state.colors[name] = i;
+      closePicker();
+      renderRules();
+      draw();
+      persist();
+    });
+    box.appendChild(b);
+  });
+  box.classList.remove("hidden");
+
+  const r = anchor.getBoundingClientRect();
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const w = box.offsetWidth || 120;
+  const left = Math.max(8, Math.min(r.left, vw - w - 8));
+  box.style.left = left + "px";
+  box.style.top = (r.bottom + 6) + "px";
+  pickerFor = name;
+}
+
+/* ---------- rule editor ---------- */
+
+/* a cell is "1", "0" or a symbol plus 1-3 stars: "1*" = 90 deg,
+   "1**" = 180 deg, "1***" = 270 deg rotation of that block's sub-structure */
+function cellParts(v) {
+  const s = String(v);
+  const m = /^([01a-j])(\*{0,3})$/.exec(s);
+  return m ? { ch: m[1], rot: m[2].length } : { ch: s, rot: 0 };
+}
+
+function rotateGrid(cells, rot) {
+  let g = cells;
+  for (let n = 0; n < rot; n++) {
+    const size = g.length;
+    const out = Array.from({ length: size }, () => Array(size).fill("0"));
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) out[j][size - 1 - i] = g[i][j];
+    }
+    g = out;
+  }
+  return g;
+}
+
+function cellPaint(v) {
+  const pal = PALETTES[state.palette];
+  const { ch } = cellParts(v);
+  if (ch === "0") return { bg: "#0b0f14", border: "#232a33", fg: "transparent" };
+  const c = colorOf(ch, pal);
+  return { bg: `rgb(${c.join(",")})`, border: `rgb(${c.join(",")})`, fg: "#0b0f14" };
+}
+
+function renderRules() {
+  const box = $("rules");
+  box.innerHTML = "";
+  for (const name of ["1", ...state.markers]) {
+    const rule = state.rules[name];
+    const base = rule.base;
+    const px = { 2: 26, 3: 23, 4: 19, 5: 17, 6: 15, 7: 13, 8: 12 }[base] || 14;
+
+    const row = document.createElement("div");
+    row.className = "rule-row";
+
+    const sw = document.createElement("button");
+    sw.type = "button";
+    sw.className = "swatch";
+    sw.title = "换颜色";
+    const c = colorOf(name, PALETTES[state.palette]);
+    sw.style.background = `rgb(${c.join(",")})`;
+    sw.setAttribute("aria-label", `${name} 的颜色`);
+    sw.addEventListener("click", e => {
+      e.stopPropagation();
+      if (pickerFor === name) { closePicker(); return; }
+      openPicker(name, sw);
+    });
+    row.appendChild(sw);
+
+    const tag = document.createElement("span");
+    tag.className = "rule-tag";
+    tag.textContent = name + "→";
+    row.appendChild(tag);
+
+    const sel = document.createElement("select");
+    sel.className = "select";
+    for (let n = 2; n <= 8; n++) {
+      const o = document.createElement("option");
+      o.value = String(n);
+      o.textContent = n + "×" + n;
+      if (n === base) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.addEventListener("change", () => setRuleBase(name, Number(sel.value)));
+    row.appendChild(sel);
+
+    const grid = document.createElement("div");
+    grid.className = "mini";
+    grid.style.gridTemplateColumns = `repeat(${base}, ${px}px)`;
+    for (let r = 0; r < base; r++) {
+      for (let cc = 0; cc < base; cc++) {
+        const v = String(rule.cells[r][cc]);
+        const parts = cellParts(v);
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "cell";
+        b.style.width = b.style.height = px + "px";
+        b.textContent = parts.ch === "0" ? "" : parts.ch + "*".repeat(parts.rot);
+        const col = cellPaint(v);
+        b.style.background = col.bg;
+        b.style.borderColor = col.border;
+        b.style.color = col.fg;
+        b.setAttribute("aria-label", `${name} 第 ${r + 1} 行第 ${cc + 1} 列`);
+        b.addEventListener("click", () => {
+          const cur = cellParts(rule.cells[r][cc]);
+          const order = ["0", "1", ...state.markers];
+          const idx = order.indexOf(cur.ch);
+          rule.cells[r][cc] = order[(idx + 1) % order.length] + "*".repeat(cur.rot);
+          closePicker();
+          renderRules();
+          draw();
+          persist();
+        });
+        // right-click cycles the rotation: 0 -> 90 -> 180 -> 270 -> 0
+        b.addEventListener("contextmenu", e => {
+          e.preventDefault();
+          const cur = cellParts(rule.cells[r][cc]);
+          if (cur.ch === "0") return;
+          rule.cells[r][cc] = cur.ch + "*".repeat((cur.rot + 1) % 4);
+          closePicker();
+          renderRules();
+          draw();
+          persist();
+        });
+        grid.appendChild(b);
+      }
+    }
+    row.appendChild(grid);
+
+    box.appendChild(row);
+  }
+  $("add-sym").disabled = state.markers.length >= MAX_MARKERS;
+  $("del-sym").disabled = state.markers.length < 1;
+}
+
+function setRuleBase(name, base) {
+  const rule = state.rules[name];
+  const next = emptyGrid(base);
+  for (let r = 0; r < Math.min(base, rule.base); r++) {
+    for (let c = 0; c < Math.min(base, rule.base); c++) next[r][c] = rule.cells[r][c];
+  }
+  rule.base = base;
+  rule.cells = next;
+  setKRange();
+  renderRules();
+  draw();
+  persist();
+}
+
+function addMarker() {
+  if (state.markers.length >= MAX_MARKERS) return;
+  const name = LETTERS[state.markers.length];
+  const bases = ["1", ...state.markers].map(n => state.rules[n].base);
+  const uniform = bases.every(b => b === bases[0]);
+  const base = uniform ? bases[0] : 2;
+  state.markers.push(name);
+  state.rules[name] = { base, cells: emptyGrid(base) };
+  state.colors[name] = (state.markers.length - 1) % 8;
+  setKRange();
+  renderRules();
+  draw();
+  persist();
+}
+
+function delMarker() {
+  if (!state.markers.length) return;
+  const name = state.markers.pop();
+  delete state.rules[name];
+  delete state.colors[name];
+  for (const key of Object.keys(state.rules)) {
+    const rule = state.rules[key];
+    rule.cells = rule.cells.map(row => row.map(v => cellParts(v).ch === name ? "0" : v));
+  }
+  closePicker();
+  setKRange();
+  renderRules();
+  draw();
+  persist();
+}
+
+/* ---------- string import / copy ---------- */
+
+function applyRulesText() {
+  const parsed = parseRulesString($("rules-text").value);
+  if (!parsed) {
+    $("err").textContent = "字符串不合法：写成 1=101/010/100; k=5; c=8 这种形式。";
+    return;
+  }
+  $("err").textContent = "";
+  applyParsed(parsed);
+  setKRange();
+  renderRules();
+  draw();
+  persist();
+}
+
+function copyRulesText() {
+  const el = $("rules-text");
+  el.focus();
+  el.select();
+  const ok = () => { $("err").textContent = "已复制"; };
+  if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value).then(ok).catch(() => {
+      $("err").textContent = "已选中，按 Ctrl+C";
+    });
+  } else {
+    $("err").textContent = "已选中，按 Ctrl+C";
+  }
+}
+
+/* ---------- recursive render ---------- */
+
+function renderNode(ctx, name, x, y, size, depth, pal) {
+  const { ch, rot } = cellParts(name);
+  if (ch === "0") return 0;
+  const rule = state.rules[ch];
+  if (!rule) return 0;
+  // stars rotate this block's sub-structure in 90-degree steps
+  const cells = rot ? rotateGrid(rule.cells, rot) : rule.cells;
+  const base = rule.base;
+  const cell = size / base;
+  let count = 0;
+  for (let r = 0; r < base; r++) {
+    for (let c = 0; c < base; c++) {
+      const v = String(cells[r][c]);
+      if (v === "0") continue;
+      const nx = x + c * cell;
+      const ny = y + r * cell;
+      // stop on depth or on sub-pixel size: a 2x2 branch keeps subdividing
+      // until it reaches the same visual grain as the 3x3 branch
+      if (depth <= 1 || cell < 1) {
+        ctx.fillStyle = `rgb(${colorOf(cellParts(v).ch, pal).join(",")})`;
+        // snap to whole pixels and widen by one so neighbouring blocks meet
+        const x0 = Math.round(nx);
+        const y0 = Math.round(ny);
+        const x1 = Math.round(nx + cell);
+        const y1 = Math.round(ny + cell);
+        ctx.fillRect(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+        count++;
+      } else {
+        count += renderNode(ctx, v, nx, ny, cell, depth - 1, pal);
+      }
+    }
+  }
+  return count;
+}
+
+function renderTo(size, pal) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = `rgb(${pal.bg.join(",")})`;
+  ctx.fillRect(0, 0, size, size);
+  const leaves = renderNode(ctx, "1", 0, 0, size, state.k, pal);
+  return { canvas: c, leaves };
+}
+
+/* ---------- draw ---------- */
+
+function draw() {
+  const pal = PALETTES[state.palette];
+  const t0 = performance.now();
+  // render straight at screen size: scaling a 2400 px canvas down to 720
+  // leaves interpolation seams between the tiny blocks
+  const { canvas, leaves } = renderTo(720, pal);
+
+  view.width = 720;
+  view.height = 720;
+  vctx.clearRect(0, 0, 720, 720);
+  vctx.drawImage(canvas, 0, 0);
+
+  const bases = ["1", ...state.markers].map(n => state.rules[n].base);
+  const uniform = bases.every(b => b === bases[0]);
+  const dim = leaves > 0 ? fractalDim() : 0;
+
+  $("m-live").textContent = leaves.toLocaleString("en-US");
+  $("m-k").textContent = String(state.k);
+  $("m-bases").textContent = bases.join(" / ");
+  $("m-dim").textContent = leaves > 0 ? dim.toFixed(3) : "—";
+  $("kval").textContent = String(state.k);
+  $("kgrid").textContent = `${Math.round(performance.now() - t0)} ms`;
+  $("dim-note").textContent = uniform ? "均匀阶数" : "变尺度 · Moran 方程";
+
+  refreshRuleText();
+}
+
+/* ---------- export png ---------- */
+
+function exportPNG() {
+  const pal = PALETTES[state.palette];
+  const { canvas } = renderTo(RENDER, pal);
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `fractal-k${state.k}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+}
+
+/* ---------- playback ---------- */
+
+let playing = false;
+let playTimer = 0;
+
+function stopPlay() {
+  playing = false;
+  clearTimeout(playTimer);
+  $("play").textContent = "逐层播放";
+}
+
+function startPlay() {
+  if (playing) return;
+  playing = true;
+  $("play").textContent = "停止";
+  const kmax = Number($("k").max);
+  let k = 1;
+  const step = () => {
+    if (!playing) return;
+    state.k = k;
+    $("k").value = String(k);
+    draw();
+    if (k >= kmax) { stopPlay(); return; }
+    k++;
+    playTimer = setTimeout(step, 240);
+  };
+  step();
+}
+
+/* ---------- wire up ---------- */
+
+$("k").addEventListener("input", e => {
+  stopPlay();
+  state.k = Number(e.target.value);
+  draw();
+  persist();
+});
+$("save").addEventListener("click", exportPNG);
+$("play").addEventListener("click", () => (playing ? stopPlay() : startPlay()));
+$("add-sym").addEventListener("click", () => { stopPlay(); addMarker(); });
+$("del-sym").addEventListener("click", () => { stopPlay(); delMarker(); });
+$("copy-rules").addEventListener("click", copyRulesText);
+$("apply-rules").addEventListener("click", applyRulesText);
+
+if (typeof document !== "undefined") {
+  document.addEventListener("click", e => {
+    if (!pickerFor) return;
+    const box = $("picker");
+    if (box.contains(e.target)) return;
+    closePicker();
+  });
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("scroll", closePicker, true);
+  window.addEventListener("resize", closePicker);
+}
+
+/* ---------- page tabs ---------- */
+
+function showPage(name) {
+  $("page-sub").classList.toggle("page-hidden", name !== "sub");
+  $("page-curve").classList.toggle("page-hidden", name !== "curve");
+  for (const b of document.querySelectorAll("[data-page]")) {
+    b.setAttribute("aria-pressed", String(b.dataset.page === name));
+  }
+  if (name === "curve") drawCurve();
+}
+
+/* ---------- curve generator ---------- */
+
+const CURVE_KEY = "fractal9.curve.v1";
+const CURVE_DEFAULT = "0,0\n0.3333,0\n0.5,0.2887\n0.6667,0\n1,0";
+
+const curve = {
+  text: CURVE_DEFAULT, k: 5, variant: 0, variants: [],
+  grid: "none", mode: "depth", rainbow: false,
+  animDur: 12, animRes: 480,
+};
+
+function rainbowColor(t) {
+  const hue = Math.round(Math.max(0, Math.min(1, t)) * 360);
+  return `hsl(${hue}, 85%, 62%)`;
+}
+
+const GRID_STEP = 1 / 6;   // matches Koch's 1/3 and sqrt(3)/6 lattice
+
+function snapPoint(p, mode) {
+  if (mode === "square") {
+    return {
+      x: Math.round(p.x / GRID_STEP) * GRID_STEP,
+      y: Math.round(p.y / GRID_STEP) * GRID_STEP,
+    };
+  }
+  if (mode === "tri") {
+    const s = GRID_STEP;
+    const h = Math.sqrt(3) / 2;
+    const fy = p.y / (s * h);
+    const fx = p.x / s - fy / 2;
+    const j0 = Math.round(fy);
+    const i0 = Math.round(fx);
+    let best = p, bestD = Infinity;
+    for (let dj = -1; dj <= 1; dj++) {
+      for (let di = -1; di <= 1; di++) {
+        const i = i0 + di, j = j0 + dj;
+        const x = (i + j / 2) * s;
+        const y = j * s * h;
+        const d = (x - p.x) * (x - p.x) + (y - p.y) * (y - p.y);
+        if (d < bestD) { bestD = d; best = { x, y }; }
+      }
+    }
+    return best;
+  }
+  return p;
+}
+
+function syncGridButtons() {
+  for (const b of document.querySelectorAll("[data-grid]")) {
+    b.setAttribute("aria-pressed", String(b.dataset.grid === curve.grid));
+  }
+}
+
+function parseCurvePoints(text) {
+  const lines = String(text).split(/\n/).map(s => s.trim()).filter(Boolean);
+  const pts = [];
+  for (const line of lines) {
+    const parts = line.split(/[,\s]+/).filter(Boolean).map(Number);
+    if (parts.length !== 2 || !isFinite(parts[0]) || !isFinite(parts[1])) return null;
+    if (parts[0] < -4 || parts[0] > 5 || parts[1] < -4 || parts[1] > 5) return null;
+    pts.push({ x: parts[0], y: -parts[1] });     // canvas y goes down
+  }
+  if (pts.length < 2 || pts.length > 24) return null;
+  return pts;
+}
+
+function syncVariants(pts) {
+  const need = pts ? pts.length - 1 : 0;
+  if (!Array.isArray(curve.variants)) curve.variants = [];
+  while (curve.variants.length < need) curve.variants.push(curve.variant || 0);
+  curve.variants.length = need;
+}
+
+function getCurvePoints() {
+  const pts = parseCurvePoints(curve.text);
+  syncVariants(pts);
+  return pts;
+}
+
+
+
+/* Per-segment orientation, but mirroring only flips the handedness used on
+   the NEXT level (hand), never the current placement -- so the template
+   itself stays continuous while each segment can still carry its own state.
+   bit 0 = mirror (flip child handedness), bit 1 = reverse (swap child ends). */
+/* Each level replaces a segment a->b with the template, always drawing from a
+   to b, so the result stays connected. The orientation of the PARENT segment
+   transforms the whole template (mirror / reverse), which keeps both ends at
+   (0,0) and (1,0); each child segment's own orientation is used one level
+   deeper. */
+function curveSegments(pts, depth, variants, rootLen) {
+  const out = [];
+  const base = rootLen || 720;
+
+  const rec = (ax, ay, bx, by, d, pv, lenPx) => {
+    if (d === 0 || lenPx < 1) { out.push(ax, ay, bx, by); return; }
+
+    let tp = pts;
+    let tv = variants;
+    if (pv & 1) tp = tp.map(p => ({ x: p.x, y: -p.y }));
+    if (pv & 2) {
+      // reversing walks the template backwards, so the per-segment
+      // orientations must be reversed with it or they all shift by one
+      tp = tp.map(p => ({ x: 1 - p.x, y: p.y })).reverse();
+      tv = tv.slice().reverse();
+    }
+
+    const dx = bx - ax, dy = by - ay;
+    for (let i = 0; i < tp.length - 1; i++) {
+      const p = tp[i], q = tp[i + 1];
+      const X1 = ax + dx * p.x - dy * p.y;
+      const Y1 = ay + dy * p.x + dx * p.y;
+      const X2 = ax + dx * q.x - dy * q.y;
+      const Y2 = ay + dy * q.x + dx * q.y;
+      const childLen = lenPx * Math.hypot(q.x - p.x, q.y - p.y);
+      if (childLen <= 1e-9) continue;   // zero-length segment draws nothing
+      rec(X1, Y1, X2, Y2, d - 1, tv[i] || 0, childLen);
+    }
+  };
+
+  rec(0, 0, 1, 0, depth, 0, base);
+  return out;
+}
+
+function curveKMax(pts) {
+  // rendering stops at sub-pixel length anyway, so the slider can go deep
+  return 20;
+}
+
+/* depth that takes the slowest-shrinking segment below 1 px on the given
+   canvas; returns 0 when the template does not shrink at all */
+function autoDepth(pts, W) {
+  if (!pts || pts.length < 2) return 1;
+  let maxR = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const r = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+    if (r > maxR) maxR = r;
+  }
+  if (maxR <= 1e-9) return 1;          // all segments degenerate
+  if (maxR >= 1) return 0;             // never shrinks -> no finite depth
+  const target = 1 / (W * 0.92);
+  return Math.max(1, Math.min(60, Math.ceil(Math.log(target) / Math.log(maxR))));
+}
+
+/* similarity dimension from the Moran equation: sum(ratio_i ^ s) = 1,
+   where ratio_i is the length of template segment i relative to its parent */
+function curveDim(pts) {
+  if (!pts || pts.length < 2) return null;
+  const ratios = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const d = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+    if (d > 1e-9) ratios.push(d);
+  }
+  if (!ratios.length) return null;
+  const f = s => ratios.reduce((acc, r) => acc + Math.pow(r, s), 0) - 1;
+  if (f(0) <= 0) return null;          // nothing to solve
+  if (f(4) > 0) return null;           // ratios too close to 1, no finite solution
+  let lo = 0, hi = 4;
+  for (let i = 0; i < 80; i++) {
+    const mid = (lo + hi) / 2;
+    if (f(mid) > 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function paintCurve(canvas, pts, depth, pal, rainbow) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = `rgb(${pal.bg.join(",")})`;
+  ctx.fillRect(0, 0, W, H);
+  if (!pts) return 0;
+  const segs = curveSegments(pts, depth, curve.variants, W * 0.92);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < segs.length; i += 2) {
+    const x = segs[i], y = segs[i + 1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const pad = W * 0.05;
+  const spanX = maxX - minX || 1e-9;
+  const spanY = maxY - minY || 1e-9;
+  const s = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY);
+  const ox = (W - spanX * s) / 2 - minX * s;
+  const oy = (H - spanY * s) / 2 - minY * s;
+  ctx.lineWidth = W < 1000 ? 0.8 : Math.max(1.2, W / 1200);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const total = segs.length / 4;
+  const paintOne = (from, to) => {
+    for (let i = from; i < to; i++) {
+      const o = i * 4;
+      ctx.moveTo(ox + segs[o] * s, oy + segs[o + 1] * s);
+      ctx.lineTo(ox + segs[o + 2] * s, oy + segs[o + 3] * s);
+    }
+  };
+
+  if (rainbow) {
+    // one path per hue bucket, scaled to the segment count: more segments get
+    // a finer hue ramp, while keeping the number of strokes bounded
+    const BUCKETS = Math.min(360, Math.max(36, Math.round(total / 16)));
+    for (let b = 0; b < BUCKETS; b++) {
+      const lo = Math.floor(b * total / BUCKETS);
+      const hi = Math.floor((b + 1) * total / BUCKETS);
+      if (hi <= lo) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = rainbowColor(b / BUCKETS);
+      paintOne(lo, hi);
+      ctx.stroke();
+    }
+  } else {
+    ctx.strokeStyle = `rgb(${pal.fg.join(",")})`;
+    // stroke in batches: a single path with millions of points exceeds the
+    // canvas path limit and silently renders nothing
+    const BATCH = 50000;
+    ctx.beginPath();
+    let pend = 0;
+    for (let i = 0; i < total; i++) {
+      const o = i * 4;
+      ctx.moveTo(ox + segs[o] * s, oy + segs[o + 1] * s);
+      ctx.lineTo(ox + segs[o + 2] * s, oy + segs[o + 3] * s);
+      if (++pend >= BATCH) { ctx.stroke(); ctx.beginPath(); pend = 0; }
+    }
+    if (pend) ctx.stroke();
+  }
+  return total;
+}
+
+/* ---------- template editor (drag points) ---------- */
+
+const ED = { pad: 16, yMin: -0.6, yMax: 0.6, drag: -1 };
+
+/* one scale for both axes, otherwise 45-degree template lines render as ~28 */
+function edMetrics(W, H) {
+  const pad = ED.pad;
+  const s = Math.min((W - 2 * pad) / 1, (H - 2 * pad) / (ED.yMax - ED.yMin));
+  return {
+    s,
+    ox: (W - s) / 2,
+    oy: (H - s * (ED.yMax - ED.yMin)) / 2,
+  };
+}
+
+function edToPx(p, W, H) {
+  const m = edMetrics(W, H);
+  return {
+    x: m.ox + p.x * m.s,
+    y: m.oy + (p.y - ED.yMin) * m.s,
+  };
+}
+
+function edToPt(px, py, W, H) {
+  const m = edMetrics(W, H);
+  return {
+    x: Math.max(0, Math.min(1, (px - m.ox) / m.s)),
+    y: Math.max(ED.yMin, Math.min(ED.yMax, ED.yMin + (py - m.oy) / m.s)),
+  };
+}
+
+function distSeg(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len2 = dx * dx + dy * dy || 1;
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+function edHitSeg(px, py) {
+  const pts = getCurvePoints();
+  if (!pts) return -1;
+  const cv = $("curve-preview");
+  const W = cv.width, H = cv.height;
+  let best = -1, bestD = 9;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = edToPx(pts[i], W, H);
+    const b = edToPx(pts[i + 1], W, H);
+    const d = distSeg(px, py, a.x, a.y, b.x, b.y);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+
+function drawEditor() {
+  const cv = $("curve-preview");
+  const W = cv.width, H = cv.height;
+  const ctx = cv.getContext("2d");
+  const pal = PALETTES[state.palette];
+  ctx.fillStyle = `rgb(${pal.bg.join(",")})`;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = "rgba(255,255,255,.08)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) {
+    const p = edToPx({ x: t, y: 0 }, W, H);
+    ctx.moveTo(p.x, 10);
+    ctx.lineTo(p.x, H - 10);
+  }
+  const base = edToPx({ x: 0, y: 0 }, W, H);
+  ctx.moveTo(10, base.y);
+  ctx.lineTo(W - 10, base.y);
+  ctx.stroke();
+
+  if (curve.grid !== "none") {
+    const s = GRID_STEP;
+    ctx.fillStyle = "rgba(255,255,255,.20)";
+    if (curve.grid === "square") {
+      for (let i = 0; i <= 8; i++) {
+        for (let j = -5; j <= 5; j++) {
+          const y = j * s;
+          if (y < -0.6 || y > 0.6) continue;
+          const q = edToPx({ x: i * s, y }, W, H);
+          ctx.beginPath();
+          ctx.arc(q.x, q.y, 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      const h = Math.sqrt(3) / 2;
+      for (let j = -6; j <= 6; j++) {
+        for (let i = -3; i <= 11; i++) {
+          const x = (i + j / 2) * s;
+          const y = j * s * h;
+          if (x < -0.005 || x > 1.005 || y < -0.6 || y > 0.6) continue;
+          const q = edToPx({ x, y }, W, H);
+          ctx.beginPath();
+          ctx.arc(q.x, q.y, 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  const pts = getCurvePoints();
+  if (!pts) {
+    ctx.fillStyle = "#e88a7a";
+    ctx.font = "12px Consolas, monospace";
+    ctx.fillText("模板无效", 16, H / 2);
+    return;
+  }
+
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = "round";
+  const fg = `rgb(${pal.fg.join(",")})`;
+
+  ctx.strokeStyle = fg;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  pts.forEach((p, i) => {
+    const q = edToPx(p, W, H);
+    if (i === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+  });
+  ctx.stroke();
+
+  // one single-barb arrowhead per segment, click it to cycle that segment
+  const amber = `rgb(${pal.markers[0].join(",")})`;
+  ctx.fillStyle = amber;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const g = arrowAt(pts, i, W, H);
+    if (!g) continue;
+    ctx.beginPath();
+    ctx.moveTo(g.tip.x, g.tip.y);
+    ctx.lineTo(g.a.x, g.a.y);
+    ctx.lineTo(g.b.x, g.b.y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  pts.forEach((p, i) => {
+    const q = edToPx(p, W, H);
+    const fixed = i === 0 || i === pts.length - 1;
+    ctx.beginPath();
+    ctx.arc(q.x, q.y, i === ED.drag ? 7 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = i === ED.drag ? "#f0c68e" : fixed ? "#8a9199" : `rgb(${pal.markers[0].join(",")})`;
+    ctx.fill();
+  });
+}
+
+function edLocal(e) {
+  const cv = $("curve-preview");
+  const r = cv.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) * cv.width / r.width,
+    y: (e.clientY - r.top) * cv.height / r.height,
+  };
+}
+
+function edHit(px, py) {
+  const cv = $("curve-preview");
+  const pts = getCurvePoints();
+  if (!pts) return -1;
+  const W = cv.width, H = cv.height;
+  let best = -1, bestD = 7;
+  pts.forEach((p, i) => {
+    const q = edToPx(p, W, H);
+    const d = Math.hypot(q.x - px, q.y - py);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  return best;
+}
+
+/* four orientations -> one barb near one end on one side:
+   0 end/left, 1 end/right, 2 start/left, 3 start/right */
+/* one solid triangular arrowhead per segment.
+   0 end/normal side, 1 end/other side, 2 start/normal, 3 start/other.
+   The side offset is what distinguishes mirrored from plain. */
+function arrowAt(pts, i, W, H) {
+  const a = edToPx(pts[i], W, H);
+  const b = edToPx(pts[i + 1], W, H);
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy, ny = ux;
+  const v = curve.variants[i] || 0;
+  const atEnd = (v & 2) === 0;          // triangle points toward the end
+  const side = (v & 1) ? 1 : -1;        // which side the barb is on
+
+  // keep the marker centred on the segment so repeated clicks always hit the
+  // same segment; only the triangle direction and the barb side change
+  if (len < 1e-6) return null;      // no marker on a degenerate segment
+  const cx = (a.x + b.x) / 2;
+  const cy = (a.y + b.y) / 2;
+  const dirx = atEnd ? ux : -ux;
+  const diry = atEnd ? uy : -uy;
+  const size = 13;
+  const tipx = cx + dirx * size * 0.55;
+  const tipy = cy + diry * size * 0.55;
+  const ax = tipx - dirx * size;
+  const ay = tipy - diry * size;
+  return {
+    tip: { x: tipx, y: tipy },
+    a: { x: ax, y: ay },
+    b: { x: ax + nx * side * size * 0.7, y: ay + ny * side * size * 0.7 },
+    hit: { x: cx, y: cy },
+  };
+}
+
+function edHitArrow(px, py) {
+  const pts = getCurvePoints();
+  if (!pts) return -1;
+  const cv = $("curve-preview");
+  const W = cv.width, H = cv.height;
+  let best = -1, bestD = 11;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const g = arrowAt(pts, i, W, H);
+    if (!g) continue;
+    const d = Math.hypot(g.hit.x - px, g.hit.y - py);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return best;
+}
+
+function writeCurvePoints(pts) {
+  curve.text = pts.map(p => r4(p.x) + "," + r4(-p.y)).join("\n");
+}
+
+function afterCurveEdit() {
+  syncCurveControls();
+  drawCurve();
+  saveCurve();
+}
+
+function syncVariantButtons() {
+  for (const b of document.querySelectorAll("[data-variant]")) {
+    b.setAttribute("aria-pressed", String(Number(b.dataset.variant) === curve.variant));
+  }
+}
+
+function drawCurve() {
+  stopCurvePreview();
+  const pts = getCurvePoints();
+  const pal = PALETTES[state.palette];
+
+  let depth = curve.k;
+  if (curve.mode === "auto") {
+    const auto = autoDepth(pts, 720);
+    if (auto === 0) {
+      $("ck-err").textContent = "模板各段都不缩小，自适应无解；请改用按深度";
+      depth = 1;
+    } else {
+      $("ck-err").textContent = "";
+      depth = auto;
+    }
+  } else {
+    $("ck-err").textContent = "";
+  }
+
+  const t0 = performance.now();
+  const segs = paintCurve($("curve-view"), pts, depth, pal, curve.rainbow);
+  const ms = Math.round(performance.now() - t0);
+
+  const dim = curveDim(pts);
+  $("cm-segs").textContent = segs.toLocaleString("en-US");
+  $("cm-k").textContent = String(depth);
+  $("cm-dim").textContent = dim === null ? "—" : dim.toFixed(3);
+  $("cm-ms").textContent = ms + " ms";
+  $("ck-val").textContent = String(depth);
+  $("ck-segs").textContent = segs.toLocaleString("en-US") + " 段";
+  refreshCurveString();
+}
+
+function hslToRgb(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = ((h % 360) + 360) % 360 / 60;
+  const x = c * (1 - Math.abs(hp % 2 - 1));
+  let r = 0, g = 0, b = 0;
+  if (hp < 1) { r = c; g = x; }
+  else if (hp < 2) { r = x; g = c; }
+  else if (hp < 3) { g = c; b = x; }
+  else if (hp < 4) { g = x; b = c; }
+  else if (hp < 5) { r = x; b = c; }
+  else { r = c; b = x; }
+  const m = l - c / 2;
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+/* ---------- in-page growing animation ---------- */
+let previewHandle = 0;
+
+function stopCurvePreview() {
+  if (previewHandle) {
+    cancelAnimationFrame(previewHandle);
+    previewHandle = 0;
+  }
+  const b = $("curve-play");
+  if (b) b.setAttribute("aria-pressed", "false");
+}
+
+function curvePreviewPrep() {
+  const pts = getCurvePoints();
+  if (!pts) return null;
+
+  let depth = curve.k;
+  if (curve.mode === "auto") {
+    const auto = autoDepth(pts, 720);
+    depth = auto === 0 ? 1 : auto;
+  }
+  const cap = autoDepth(pts, 720);
+  if (cap > 0) depth = Math.min(depth, cap);
+
+  const W = 720;
+  const segs = curveSegments(pts, depth, curve.variants, W * 0.92);
+  const total = segs.length / 4;
+  if (!total) return null;
+
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < segs.length; i += 2) {
+    const x = segs[i], y = segs[i + 1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const pad = W * 0.05;
+  const spanX = maxX - minX || 1e-9;
+  const spanY = maxY - minY || 1e-9;
+  const sc = Math.min((W - 2 * pad) / spanX, (W - 2 * pad) / spanY);
+  return {
+    segs, total, W,
+    ox: (W - spanX * sc) / 2 - minX * sc,
+    oy: (W - spanY * sc) / 2 - minY * sc,
+    sc,
+  };
+}
+
+/* draws only [from, to): the preview appends new segments each frame instead
+   of redrawing everything, so it can use the same depth as the static view */
+function drawCurveRange(prep, from, to, clear) {
+  const canvas = $("curve-view");
+  const ctx = canvas.getContext("2d");
+  const pal = PALETTES[state.palette];
+  const W = prep.W;
+  if (clear) {
+    ctx.fillStyle = `rgb(${pal.bg.join(",")})`;
+    ctx.fillRect(0, 0, W, W);
+  }
+  ctx.lineWidth = W < 1000 ? 0.8 : Math.max(1.2, W / 1200);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const { segs, ox, oy, sc } = prep;
+  const paintOne = (a, b) => {
+    for (let i = a; i < b; i++) {
+      const o = i * 4;
+      ctx.moveTo(ox + segs[o] * sc, oy + segs[o + 1] * sc);
+      ctx.lineTo(ox + segs[o + 2] * sc, oy + segs[o + 3] * sc);
+    }
+  };
+
+  if (curve.rainbow) {
+    const BUCKETS = Math.min(360, Math.max(36, Math.round(prep.total / 16)));
+    for (let b = 0; b < BUCKETS; b++) {
+      const lo = Math.max(from, Math.floor(b * prep.total / BUCKETS));
+      const hi = Math.min(to, Math.floor((b + 1) * prep.total / BUCKETS));
+      if (hi <= lo) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = rainbowColor(b / BUCKETS);
+      paintOne(lo, hi);
+      ctx.stroke();
+    }
+  } else {
+    ctx.strokeStyle = `rgb(${pal.fg.join(",")})`;
+    const BATCH = 50000;
+    let pend = 0;
+    ctx.beginPath();
+    for (let i = from; i < to; i++) {
+      const o = i * 4;
+      ctx.moveTo(ox + segs[o] * sc, oy + segs[o + 1] * sc);
+      ctx.lineTo(ox + segs[o + 2] * sc, oy + segs[o + 3] * sc);
+      if (++pend >= BATCH) { ctx.stroke(); ctx.beginPath(); pend = 0; }
+    }
+    if (pend) ctx.stroke();
+  }
+}
+
+function playCurvePreview() {
+  if (previewHandle) {
+    stopCurvePreview();
+    drawCurve();          // restore the finished picture after a partial run
+    return;
+  }
+  const prep = curvePreviewPrep();
+  if (!prep) return;
+  const btn = $("curve-play");
+  btn.setAttribute("aria-pressed", "true");
+
+  const DURATION = Math.max(500, curve.animDur * 1000);
+  const t0 = performance.now();
+  let drawn = 0;
+  const tick = now => {
+    const t = Math.min(1, (now - t0) / DURATION);
+    const upto = Math.max(1, Math.ceil(prep.total * t));
+    if (upto > drawn) {
+      drawCurveRange(prep, drawn, upto, drawn === 0);
+      drawn = upto;
+    }
+    if (t < 1) {
+      previewHandle = requestAnimationFrame(tick);
+    } else {
+      previewHandle = 0;
+      if (btn) btn.setAttribute("aria-pressed", "false");
+    }
+  };
+  previewHandle = requestAnimationFrame(tick);
+}
+
+function exportCurveGIF() {
+  const pts = getCurvePoints();
+  if (!pts) return;
+
+  const W = curve.animRes;
+  const FRAMES = Math.min(200, Math.max(20, Math.round(curve.animDur * 10)));
+
+  let depth = curve.k;
+  if (curve.mode === "auto") {
+    const auto = autoDepth(pts, 720);
+    depth = auto === 0 ? 1 : auto;
+  }
+  const cap = autoDepth(pts, 720);
+  if (cap > 0) depth = Math.min(depth, cap);
+  // keep the per-frame redraw affordable
+  let per = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y) > 1e-9) per++;
+  }
+  per = Math.max(2, per);
+  while (depth > 1 && Math.pow(per, depth) > 200000) depth--;
+
+  const segs = curveSegments(pts, depth, curve.variants, 720 * 0.92);
+  const total = segs.length / 4;
+  if (!total) return;
+
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < segs.length; i += 2) {
+    const x = segs[i], y = segs[i + 1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const pad = W * 0.05;
+  const spanX = maxX - minX || 1e-9;
+  const spanY = maxY - minY || 1e-9;
+  const sc = Math.min((W - 2 * pad) / spanX, (W - 2 * pad) / spanY);
+  const ox = (W - spanX * sc) / 2 - minX * sc;
+  const oy = (W - spanY * sc) / 2 - minY * sc;
+
+  const pal = PALETTES[state.palette];
+  const bg = pal.bg;
+  const palette = [[bg[0], bg[1], bg[2]]];
+  const colorIdx = i => {
+    if (!curve.rainbow) { palette[1] = pal.fg.slice(); return 1; }
+    const steps = 180;
+    if (palette.length === 1) {
+      for (let s = 0; s < steps; s++) palette.push(hslToRgb((s / steps) * 360, 0.85, 0.62));
+    }
+    return 1 + Math.floor((i / total) * steps) % steps;
+  };
+
+  // build the index map once (the palette is stable after the first call)
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = W;
+  const ctx = canvas.getContext("2d");
+  // GIF only keeps exact palette colours, so the stroke must be thick enough
+  // for its core pixels to be fully covered instead of anti-aliased away
+  ctx.lineWidth = Math.max(2, W * 1.6 / 720);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  // palette must be complete before the lookup table is built
+  colorIdx(0);
+  // 16³ RGB buckets -> nearest palette entry, so anti-aliased edge pixels
+  // snap to the stroke colour instead of falling back to the background
+  const LUT = new Uint8Array(4096);
+  for (let r = 0; r < 16; r++) {
+    for (let g = 0; g < 16; g++) {
+      for (let b = 0; b < 16; b++) {
+        const cr = r * 17, cg = g * 17, cb = b * 17;
+        let best = 0, bestD = Infinity;
+        for (let k = 0; k < palette.length; k++) {
+          const dr = palette[k][0] - cr;
+          const dg = palette[k][1] - cg;
+          const db = palette[k][2] - cb;
+          const d = dr * dr + dg * dg + db * db;
+          if (d < bestD) { bestD = d; best = k; }
+        }
+        LUT[(r << 8) | (g << 4) | b] = best;
+      }
+    }
+  }
+
+  const frames = [];
+  for (let f = 0; f < FRAMES; f++) {
+    ctx.fillStyle = `rgb(${bg.join(",")})`;
+    ctx.fillRect(0, 0, W, W);
+
+    const upto = Math.ceil(total * (f + 1) / FRAMES);
+    ctx.beginPath();
+    let cur = -1;
+    for (let i = 0; i < upto; i++) {
+      const idx = colorIdx(i);
+      if (idx !== cur) {
+        if (cur >= 0) ctx.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle = `rgb(${palette[idx].join(",")})`;
+        cur = idx;
+      }
+      const o = i * 4;
+      ctx.moveTo(ox + segs[o] * sc, oy + segs[o + 1] * sc);
+      ctx.lineTo(ox + segs[o + 2] * sc, oy + segs[o + 3] * sc);
+    }
+    if (cur >= 0) ctx.stroke();
+
+    const data = ctx.getImageData(0, 0, W, W).data;
+    const indexes = new Uint8Array(W * W);
+    for (let p = 0, q = 0; p < indexes.length; p++, q += 4) {
+      indexes[p] = LUT[((data[q] >> 4) << 8) | ((data[q + 1] >> 4) << 4) | (data[q + 2] >> 4)];
+    }
+    frames.push(indexes);
+  }
+
+  const bytes = gifEncode(palette, frames, W, W, 10);  // 100 ms per frame
+  const blob = new Blob([bytes], { type: "image/gif" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `curve-k${depth}.gif`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+function setCurveMode(mode) {
+  curve.mode = mode;
+  for (const b of document.querySelectorAll("[data-cmode]")) {
+    b.setAttribute("aria-pressed", String(b.dataset.cmode === mode));
+  }
+  $("ck").disabled = mode === "auto";
+  drawCurve();
+  saveCurve();
+}
+
+function syncRainbowButtons() {
+  for (const b of document.querySelectorAll("[data-rainbow]")) {
+    b.setAttribute("aria-pressed", String((b.dataset.rainbow === "1") === !!curve.rainbow));
+  }
+}
+
+/* ---------- minimal GIF89a encoder (no external library) ---------- */
+
+function lzwEncode(minCode, pixels) {
+  const clearCode = 1 << minCode;
+  const eoiCode = clearCode + 1;
+  let codeSize, nextCode, dict;
+
+  const reset = () => {
+    dict = new Map();
+    for (let i = 0; i < clearCode; i++) dict.set(String.fromCharCode(i), i);
+    codeSize = minCode + 1;
+    nextCode = eoiCode + 1;
+  };
+  reset();
+
+  const out = [];
+  let acc = 0, bits = 0;
+  const emit = code => {
+    acc |= code << bits;
+    bits += codeSize;
+    while (bits >= 8) {
+      out.push(acc & 255);
+      acc >>= 8;
+      bits -= 8;
+    }
+  };
+
+  emit(clearCode);
+  let prefix = String.fromCharCode(pixels[0]);
+  for (let i = 1; i < pixels.length; i++) {
+    const c = String.fromCharCode(pixels[i]);
+    const key = prefix + c;
+    if (dict.has(key)) {
+      prefix = key;
+    } else {
+      emit(dict.get(prefix));
+      if (nextCode <= 4095) {
+        dict.set(key, nextCode++);
+        if (nextCode - 1 === (1 << codeSize) && codeSize < 12) codeSize++;
+      } else {
+        emit(clearCode);
+        reset();
+      }
+      prefix = c;
+    }
+  }
+  emit(dict.get(prefix));
+  emit(eoiCode);
+  if (bits > 0) out.push(acc & 255);
+  return out;
+}
+
+function gifEncode(palette, frames, w, h, delayCs) {
+  const out = [];
+  const byte = b => out.push(b & 255);
+  const short = v => { out.push(v & 255, (v >> 8) & 255); };
+  const str = s => { for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); };
+
+  str("GIF89a");
+  short(w);
+  short(h);
+  const palBits = Math.max(1, Math.ceil(Math.log2(Math.max(2, palette.length))));
+  const palSize = 1 << palBits;
+  byte(0x80 | (palBits - 1));   // global color table, size
+  byte(0);                       // background index
+  byte(0);                       // aspect ratio
+  for (let i = 0; i < palSize; i++) {
+    const c = palette[i] || [0, 0, 0];
+    byte(c[0]); byte(c[1]); byte(c[2]);
+  }
+
+  const minCode = Math.max(2, palBits);
+  for (const frame of frames) {
+    byte(0x21); byte(0xF9); byte(0x04); byte(0x04);
+    short(delayCs);
+    byte(0); byte(0);            // transparent index, terminator
+    byte(0x2C);                  // image descriptor
+    short(0); short(0); short(w); short(h);
+    byte(0);                     // no local color table
+    byte(minCode);
+    const data = lzwEncode(minCode, frame);
+    for (let i = 0; i < data.length; i += 255) {
+      const chunk = data.slice(i, i + 255);
+      byte(chunk.length);
+      for (let j = 0; j < chunk.length; j++) byte(chunk[j]);
+    }
+    byte(0);                     // block terminator
+  }
+  byte(0x3B);
+  return new Uint8Array(out);
+}
+
+function exportCurvePNG() {
+  const pts = getCurvePoints();
+  if (!pts) return;
+
+  let depth = curve.k;
+  if (curve.mode === "auto") {
+    const auto = autoDepth(pts, 2400);
+    depth = auto === 0 ? 1 : auto;
+  }
+
+  const W = 2400;
+  const c = document.createElement("canvas");
+  c.width = c.height = W;
+  const ctx = c.getContext("2d");
+  const pal = PALETTES[state.palette];
+  ctx.fillStyle = `rgb(${pal.bg.join(",")})`;
+  ctx.fillRect(0, 0, W, W);
+
+  // match the screen's visible detail: same sub-pixel rule scaled to 720,
+  // so the export is the same picture, just at higher resolution
+  const cap = autoDepth(pts, 720);
+  if (cap > 0) depth = Math.min(depth, cap);
+
+  const segs = curveSegments(pts, depth, curve.variants, 720 * 0.92);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < segs.length; i += 2) {
+    const x = segs[i], y = segs[i + 1];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const pad = W * 0.05;
+  const spanX = maxX - minX || 1e-9;
+  const spanY = maxY - minY || 1e-9;
+  const sc = Math.min((W - 2 * pad) / spanX, (W - 2 * pad) / spanY);
+  const ox = (W - spanX * sc) / 2 - minX * sc;
+  const oy = (W - spanY * sc) / 2 - minY * sc;
+
+  ctx.lineWidth = W * 0.8 / 720;   // same visual weight as the screen
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const finish = () => {
+    c.toBlob(blob => {
+      if (!blob) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `curve-k${depth}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, "image/png");
+  };
+
+  if (curve.rainbow) {
+    const total = segs.length / 4;
+    const BUCKETS = Math.min(360, Math.max(36, Math.round(total / 16)));
+    for (let b = 0; b < BUCKETS; b++) {
+      const lo = Math.floor(b * total / BUCKETS);
+      const hi = Math.floor((b + 1) * total / BUCKETS);
+      if (hi <= lo) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = rainbowColor(b / BUCKETS);
+      for (let k = lo; k < hi; k++) {
+        const o = k * 4;
+        ctx.moveTo(ox + segs[o] * sc, oy + segs[o + 1] * sc);
+        ctx.lineTo(ox + segs[o + 2] * sc, oy + segs[o + 3] * sc);
+      }
+      ctx.stroke();
+    }
+    finish();
+    return;
+  }
+
+  // draw in chunks between macrotasks: one giant synchronous path can be
+  // dropped by the canvas implementation, leaving a blank image
+  ctx.strokeStyle = `rgb(${pal.fg.join(",")})`;
+  let i = 0;
+  const CHUNK = 60000;
+
+  const step = () => {
+    ctx.beginPath();
+    const end = Math.min(segs.length, i + CHUNK * 4);
+    for (; i < end; i += 4) {
+      ctx.moveTo(ox + segs[i] * sc, oy + segs[i + 1] * sc);
+      ctx.lineTo(ox + segs[i + 2] * sc, oy + segs[i + 3] * sc);
+    }
+    ctx.stroke();
+    if (i < segs.length) setTimeout(step, 0);
+    else finish();
+  };
+  step();
+}
+
+function syncCurveControls() {
+  const pts = getCurvePoints();
+  const kmax = pts ? curveKMax(pts) : 8;
+  curve.k = Math.max(1, Math.min(curve.k, kmax));
+  const slider = $("ck");
+  slider.max = String(kmax);
+  slider.value = String(curve.k);
+  $("ck-max").textContent = "max " + kmax;
+  $("ck-val").textContent = String(curve.k);
+}
+
+function saveCurve() {
+  try { localStorage.setItem(CURVE_KEY, JSON.stringify(curve)); } catch (e) { /* ignore */ }
+}
+
+/* ---------- curve rule string ----------
+
+   0,0 / 0.5,-0.5 / 1,0; dirs=0,2; k=13
+
+   points separated by "/", each segment's orientation in dirs, depth in k
+*/
+
+function r4(v) {
+  return Math.round(v * 10000) / 10000;
+}
+
+function curveToString() {
+  const pts = getCurvePoints();
+  if (!pts) return "";
+  const rows = pts.map((p, i) => {
+    const base = r4(p.x) + "," + r4(-p.y);
+    // orientation belongs to the segment starting at this point
+    return i < pts.length - 1 ? base + "," + (curve.variants[i] || 0) : base;
+  });
+  return rows.join(" / ") + "; k=" + curve.k;
+}
+
+function parseCurveString(text) {
+  const chunks = String(text).split(";").map(s => s.trim()).filter(Boolean);
+  if (!chunks.length) return null;
+  const rows = chunks[0].split("/").map(s => s.trim()).filter(Boolean);
+  if (rows.length < 2 || rows.length > 24) return null;
+  const pts = [];
+  const inline = [];
+  for (const row of rows) {
+    const parts = row.split(/[,\s]+/).filter(Boolean).map(Number);
+    if (parts.length < 2 || parts.length > 3) return null;
+    if (!isFinite(parts[0]) || !isFinite(parts[1])) return null;
+    if (parts[0] < -4 || parts[0] > 5 || parts[1] < -4 || parts[1] > 5) return null;
+    let dir = null;
+    if (parts.length === 3) {
+      if (!Number.isInteger(parts[2]) || parts[2] < 0 || parts[2] > 3) return null;
+      dir = parts[2];
+    }
+    pts.push({ x: parts[0], y: -parts[1] });
+    inline.push(dir);
+  }
+  let variant = null;
+  let dirs = null;
+  let k = null;
+  for (const chunk of chunks.slice(1)) {
+    const eq = chunk.indexOf("=");
+    if (eq < 0) return null;
+    const key = chunk.slice(0, eq).trim();
+    const val = chunk.slice(eq + 1).trim();
+    if (key === "v" || key === "variant") {
+      const n = Number(val);
+      if (!Number.isInteger(n) || n < 0 || n > 3) return null;
+      variant = n;
+    } else if (key === "dirs") {
+      if (!val) { dirs = []; continue; }
+      dirs = val.split(",").map(s => Number(s.trim()));
+      if (dirs.some(v => !Number.isInteger(v) || v < 0 || v > 3)) return null;
+    } else if (key === "k") {
+      k = Number(val);
+      if (!Number.isInteger(k) || k < 1) return null;
+    }
+  }
+  return { pts, inline, variant, dirs, k };
+}
+
+function refreshCurveString() {
+  const el = $("curve-str");
+  if (!el) return;
+  if (document.activeElement === el) return;
+  el.value = curveToString();
+}
+
+function applyCurveString() {
+  const parsed = parseCurveString($("curve-str").value);
+  if (!parsed) {
+    $("curve-err").textContent = "字符串不合法：写成 0,0 / 0.5,-0.5 / 1,0; v=2; k=13 这种形式。";
+    return;
+  }
+  $("curve-err").textContent = "";
+  const need = parsed.pts.length - 1;
+  curve.text = parsed.pts.map(p => r4(p.x) + "," + r4(-p.y)).join("\n");
+  // precedence: inline per-point value, then a legacy dirs= list, then v=
+  const base = parsed.dirs && parsed.dirs.length === need
+    ? parsed.dirs.slice()
+    : new Array(need).fill(parsed.variant !== null ? parsed.variant : 0);
+  for (let i = 0; i < need; i++) {
+    if (parsed.inline[i] !== null && parsed.inline[i] !== undefined) base[i] = parsed.inline[i];
+  }
+  curve.variants = base;
+  if (parsed.k) curve.k = parsed.k;
+  syncCurveControls();
+  drawEditor();
+  drawCurve();
+  saveCurve();
+  $("curve-str").value = curveToString();
+}
+
+function copyCurveString() {
+  const el = $("curve-str");
+  el.value = curveToString();
+  el.focus();
+  el.select();
+  const ok = () => { $("curve-err").textContent = "已复制"; };
+  if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value).then(ok).catch(() => {
+      $("curve-err").textContent = "已选中，按 Ctrl+C";
+    });
+  } else {
+    $("curve-err").textContent = "已选中，按 Ctrl+C";
+  }
+}
+
+/* ---------- boot ---------- */
+
+buildPaletteUI();
+if (!restore()) {
+  applyParsed({ markers: [], rules: defaultRules(), colors: defaultColors(), k: 5 });
+}
+setKRange();
+renderRules();
+draw();
+
+try {
+  const raw = localStorage.getItem(CURVE_KEY);
+  if (raw) {
+    const c = JSON.parse(raw);
+    if (c && typeof c.text === "string") {
+      curve.text = c.text;
+      curve.k = Number.isInteger(c.k) ? c.k : 5;
+      if (Number.isInteger(c.variant) && c.variant >= 0 && c.variant <= 3) {
+        curve.variant = c.variant;
+      }
+      if (c.grid === "none" || c.grid === "square" || c.grid === "tri") {
+        curve.grid = c.grid;
+      }
+      if (c.mode === "depth" || c.mode === "auto") curve.mode = c.mode;
+      if (typeof c.rainbow === "boolean") curve.rainbow = c.rainbow;
+      if (Number.isFinite(c.animDur)) curve.animDur = Math.max(2, Math.min(20, c.animDur));
+      if (Number.isFinite(c.animRes)) curve.animRes = Math.max(240, Math.min(800, c.animRes));
+      if (Array.isArray(c.variants)) {
+        curve.variants = c.variants.map(v => (Number.isInteger(v) && v >= 0 && v <= 3) ? v : 0);
+      }
+    }
+  }
+} catch (e) { /* ignore */ }
+
+syncCurveControls();
+drawEditor();
+syncVariantButtons();
+syncGridButtons();
+refreshCurveString();
+
+for (const b of document.querySelectorAll("[data-page]")) {
+  b.addEventListener("click", () => showPage(b.dataset.page));
+}
+$("ck").addEventListener("input", e => {
+  curve.k = Number(e.target.value);
+  drawCurve();
+  saveCurve();
+});
+$("curve-save").addEventListener("click", exportCurvePNG);
+$("curve-gif").addEventListener("click", exportCurveGIF);
+$("curve-play").addEventListener("click", playCurvePreview);
+
+$("anim-dur").addEventListener("input", e => {
+  curve.animDur = Number(e.target.value);
+  $("anim-dur-val").textContent = curve.animDur + " s";
+  saveCurve();
+});
+$("anim-res").addEventListener("input", e => {
+  curve.animRes = Number(e.target.value);
+  $("anim-res-val").textContent = String(curve.animRes);
+  saveCurve();
+});
+$("anim-dur").value = String(curve.animDur);
+$("anim-dur-val").textContent = curve.animDur + " s";
+$("anim-res").value = String(curve.animRes);
+$("anim-res-val").textContent = String(curve.animRes);
+for (const b of document.querySelectorAll("[data-grid]")) {
+  b.addEventListener("click", () => {
+    curve.grid = b.dataset.grid;
+    syncGridButtons();
+    drawEditor();
+    saveCurve();
+  });
+}
+
+for (const b of document.querySelectorAll("[data-cmode]")) {
+  b.addEventListener("click", () => setCurveMode(b.dataset.cmode));
+}
+for (const b of document.querySelectorAll("[data-rainbow]")) {
+  b.addEventListener("click", () => {
+    curve.rainbow = b.dataset.rainbow === "1";
+    syncRainbowButtons();
+    drawCurve();
+    saveCurve();
+  });
+}
+syncRainbowButtons();
+$("ck").disabled = curve.mode === "auto";
+for (const b of document.querySelectorAll("[data-cmode]")) {
+  b.setAttribute("aria-pressed", String(b.dataset.cmode === curve.mode));
+}
+$("curve-copy").addEventListener("click", copyCurveString);
+$("curve-apply").addEventListener("click", applyCurveString);
+$("curve-str").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); applyCurveString(); }
+});
+
+for (const b of document.querySelectorAll("[data-variant]")) {
+  b.addEventListener("click", () => {
+    curve.variant = Number(b.dataset.variant);
+    curve.variants = curve.variants.map(() => curve.variant);
+    syncVariantButtons();
+    drawEditor();
+    drawCurve();
+    saveCurve();
+  });
+}
+
+const edCanvas = $("curve-preview");
+
+edCanvas.addEventListener("pointerdown", e => {
+  const p = edLocal(e);
+  const i = edHit(p.x, p.y);
+  if (i >= 0) {
+    ED.drag = i;
+    edCanvas.setPointerCapture(e.pointerId);
+    drawEditor();
+    e.preventDefault();
+    return;
+  }
+  const si = edHitArrow(p.x, p.y);
+  if (si >= 0) {
+    curve.variants[si] = ((curve.variants[si] || 0) + 1) % 4;
+    drawEditor();
+    afterCurveEdit();
+    e.preventDefault();
+  }
+});
+
+edCanvas.addEventListener("pointermove", e => {
+  if (ED.drag < 0) return;
+  const pts = getCurvePoints();
+  if (!pts) return;
+  const i = ED.drag;
+  if (i === 0 || i === pts.length - 1) return;
+  const p = edLocal(e);
+  pts[i] = snapPoint(edToPt(p.x, p.y, edCanvas.width, edCanvas.height), curve.grid);
+  writeCurvePoints(pts);
+  drawEditor();
+  e.preventDefault();
+});
+
+edCanvas.addEventListener("pointerup", () => {
+  if (ED.drag < 0) return;
+  ED.drag = -1;
+  drawEditor();
+  afterCurveEdit();
+});
+
+edCanvas.addEventListener("pointercancel", () => {
+  ED.drag = -1;
+  drawEditor();
+});
+
+edCanvas.addEventListener("dblclick", e => {
+  const p = edLocal(e);
+  const pts = getCurvePoints();
+  if (!pts) return;
+  const W = edCanvas.width, H = edCanvas.height;
+  let best = -1, bestD = 12;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = edToPx(pts[i], W, H);
+    const b = edToPx(pts[i + 1], W, H);
+    const d = distSeg(p.x, p.y, a.x, a.y, b.x, b.y);
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  if (best < 0) return;
+  pts.splice(best + 1, 0, snapPoint(edToPt(p.x, p.y, W, H), curve.grid));
+  writeCurvePoints(pts);
+  drawEditor();
+  afterCurveEdit();
+});
+
+edCanvas.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  const p = edLocal(e);
+  const pts = getCurvePoints();
+  if (!pts || pts.length <= 2) return;
+
+  // right-click a node: remove that node
+  const node = edHit(p.x, p.y);
+  if (node > 0 && node < pts.length - 1) {
+    pts.splice(node, 1);
+    writeCurvePoints(pts);
+    drawEditor();
+    afterCurveEdit();
+    return;
+  }
+
+  // right-click a segment: delete the segment by merging one of its ends away
+  const si = edHitSeg(p.x, p.y);
+  if (si < 0) return;
+  if (si + 1 < pts.length - 1) {
+    pts.splice(si + 1, 1);
+  } else if (si > 0) {
+    pts.splice(si, 1);
+  } else {
+    return;
+  }
+  writeCurvePoints(pts);
+  drawEditor();
+  afterCurveEdit();
+});
+
+const initialPage = location.hash === "#curve" ? "curve" : "sub";
+showPage(initialPage);
+</script>
+</body>
+</html>
