@@ -192,10 +192,54 @@
     text-transform:uppercase;color:var(--ink-3);
   }
   tbody td.num{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
-  tbody tr{cursor:pointer}
-  tbody tr.is-current{background:rgba(166,67,43,.08)}
-  tbody tr.is-current td{font-weight:600}
-  tbody tr:hover{background:rgba(20,16,13,.035)}
+  #tbody tr{cursor:pointer}
+  #tbody tr.is-current{background:rgba(166,67,43,.08)}
+  #tbody tr.is-current td{font-weight:600}
+  #tbody tr:hover{background:rgba(20,16,13,.035)}
+
+  /* 构造方法 */
+  .methods{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
+  .secTitle{
+    margin:0 0 .9rem;padding-top:clamp(1.6rem,4vw,2.4rem);
+    border-top:1px solid var(--line);
+    font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.4rem,3vw,1.9rem);line-height:1.2;letter-spacing:-.01em;
+  }
+  .lead{margin:0 0 1.3rem;max-width:64ch;color:var(--ink-2);font-size:.92rem}
+  .mList{list-style:none;margin:1.2rem 0 0;padding:0}
+  .m{padding:1.15rem 0;border-top:1px solid var(--line)}
+  .m h3{
+    margin:0 0 .5rem;font-family:var(--serif);font-weight:600;
+    font-size:1.02rem;letter-spacing:-.01em;
+  }
+  .m p{margin:0 0 .6rem;max-width:68ch;color:var(--ink-2);font-size:.92rem}
+  .m p:last-child{margin-bottom:0}
+  .m code,.set{
+    font-family:var(--mono);font-size:.79rem;
+    background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:2px;
+    padding:.1em .34em;
+  }
+  .set{
+    display:block;white-space:pre-wrap;word-break:break-word;
+    line-height:1.75;padding:.7rem .8rem;margin:.5rem 0 .7rem;overflow-x:auto;
+  }
+  .why{color:var(--ink-3);font-size:.85rem;border-left:2px solid var(--line);padding-left:.8rem}
+  .rules{list-style:none;margin:.3rem 0 .6rem;padding:0;font-size:.92rem;color:var(--ink-2)}
+  .rules li{padding:.22rem 0}
+  .rules b{font-family:var(--mono);font-size:.82rem;color:var(--ink);margin-right:.4rem}
+  .catTable{margin:0 0 1.2rem;overflow-x:auto;border:1px solid var(--line);border-radius:2px}
+  .catTable table{margin:0;background:transparent}
+  .catTable thead th{position:static}
+  .m table{margin:.3rem 0 .7rem;background:transparent;font-size:.82rem}
+  .m thead th{position:static}
+  .noteBox{
+    margin-top:1.2rem;padding:.9rem 1rem;
+    border:1px solid var(--line);border-radius:2px;
+    background:rgba(255,255,255,.34);
+    font-size:.88rem;color:var(--ink-2);
+  }
+  .noteBox p{margin:0}
+  .noteBox b{color:var(--ink)}
 
   .foot{
     max-width:var(--wide);margin:0 auto;
@@ -291,6 +335,91 @@
         </table>
       </div>
     </details>
+  </section>
+
+  <section class="methods">
+    <h2 class="secTitle">构造方法</h2>
+    <p class="lead">所有坐标从 0 开始；未列为空位的格点全部放棋子；整数区间含两端；模运算取 0 到模数减 1 的代表元。普通 n×n 晶胞沿 (n, 0) 与 (0, n) 平铺。剪切晶胞用高度 H、宽度 W、剪切量 s 表示，周期向量为 (W, 0) 与 (s, H)：格点 (x, y) 先写成 y = qH + r（0 ≤ r &lt; H），再归约到 ((x − qs) mod W, r)。</p>
+
+    <div class="catTable">
+      <table>
+        <thead><tr><th scope="col">参数</th><th scope="col">空位密度上界</th></tr></thead>
+        <tbody>
+          <tr><td class="num">n = 1</td><td class="num">1</td></tr>
+          <tr><td class="num">n = 2</td><td class="num">3/4</td></tr>
+          <tr><td class="num">n = 3</td><td class="num">1/2</td></tr>
+          <tr><td class="num">n = 4</td><td class="num">1/3</td></tr>
+          <tr><td class="num">n = 9</td><td class="num">35/261</td></tr>
+          <tr><td class="num">n ≡ 1, 5 (mod 6), n ≥ 5</td><td class="num">1/n</td></tr>
+          <tr><td class="num">n ≡ 0, 6, 8 (mod 12)</td><td class="num">1/(n − 1)</td></tr>
+          <tr><td class="num">n ≡ 2, 10 (mod 12), n ≥ 10</td><td class="num">(n + 1)/n<sup>2</sup></td></tr>
+          <tr><td class="num">n ≡ 3 (mod 6), n ≥ 15</td><td class="num">(4n + 10)/[n(4n + 2)]</td></tr>
+          <tr><td class="num">n ≡ 4 (mod 12), n ≥ 16</td><td class="num">(n + 2)/n<sup>2</sup></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ol class="mList">
+
+      <li class="m">
+        <h3>1　小参数 n = 1, 2, 3, 4, 9</h3>
+        <p>直接给出空位余数集合，均为单独构造。</p>
+        <ul class="rules">
+          <li><b>n = 1</b>全部留空。</li>
+          <li><b>n = 2</b><code>x + 2y mod 4 ∈ {0, 1, 2}</code> 时留空。</li>
+          <li><b>n = 3</b><code>x + 2y mod 4 ∈ {0, 1}</code> 时留空。</li>
+          <li><b>n = 4</b><code>x + 2y mod 12 ∈ {0, 1, 5, 8}</code> 时留空。</li>
+          <li><b>n = 9</b><code>x + 30y mod 261 ∈ S</code> 时留空，S 共 35 个元素。</li>
+        </ul>
+        <pre class="set">S = {0, 2, 9, 18, 20, 25, 27, 36, 43, 45, 52, 61, 70, 79, 88, 97, 106, 115,
+     124, 127, 135, 144, 153, 162, 171, 179, 182, 191, 200, 209, 218, 227, 236, 245, 254}</pre>
+      </li>
+
+      <li class="m">
+        <h3>2　线性同余族</h3>
+        <p>n ≡ 1, 5 (mod 6) 时取 p = n；n ≡ 0, 6, 8 (mod 12) 时取 p = n − 1。令 <code>x + 2y ≡ 0 (mod p)</code> 的格点留空，空位密度为 1/p。</p>
+        <p class="why">p 与 6 互素，四个方向对应步长 1、2、3、−1 在模 p 下都可逆，因此每个方向连续 p 格恰好有一个空位；p ≤ n 保证覆盖。n ≡ 1, 5 (mod 6) 时 p = n，该族达到已证下界 1/n。</p>
+      </li>
+
+      <li class="m">
+        <h3>3　两段斜率 3 的族</h3>
+        <p>适用 n ≡ 2, 10 (mod 12)，n ≥ 10。令 m = n/2，在 n×n 晶胞中：0 ≤ y &lt; m 时留空 <code>(3y mod n, y)</code>；m ≤ y &lt; n 时留空 <code>((3y + 3) mod n, y)</code>；再补一点 <code>(m, 0)</code>。按 (n, 0)、(0, n) 平铺，共 n + 1 个空位。</p>
+        <p class="why">前半段用相位 0、后半段用相位 3，切换行用 (m, 0) 修补。相对原 1/(n − 1) 减少 1/[n<sup>2</sup>(n − 1)]；对 n ≡ 10 (mod 12) 相对 (n + 2)/n<sup>2</sup> 减少 1/n<sup>2</sup>。</p>
+      </li>
+
+      <li class="m">
+        <h3>4　n = 6k + 3 分段相位族</h3>
+        <p>适用 n ≥ 15。令 u = n/3，M = n(4n + 2)，a = 4n + 3。S 取下表所有 nq + r；当 <code>x + ay mod M ∈ S</code> 时留空。共 4n + 10 个余数，空位密度 (4n + 10)/[n(4n + 2)]。</p>
+        <table>
+          <thead><tr><th scope="col">相位 r</th><th scope="col">块坐标 q，区间含两端</th></tr></thead>
+          <tbody>
+            <tr><td class="num">0</td><td class="num">[0, 6] ∪ [4u + 7, 2n + 6] ∪ [10u + 7, 4n + 1]</td></tr>
+            <tr><td class="num">n − 2</td><td class="num">{2} ∪ [4, 4u + 4]</td></tr>
+            <tr><td class="num">2</td><td class="num">[2n + 8, 10u + 6] ∪ {10u + 7, 10u + 8, 10u + 10}</td></tr>
+            <tr><td class="num">u − 2</td><td class="num">{4u + 5}</td></tr>
+            <tr><td class="num">1</td><td class="num">{4u + 6}</td></tr>
+            <tr><td class="num">n − 1</td><td class="num">{2n + 6}</td></tr>
+            <tr><td class="num">n − u + 2</td><td class="num">{2n + 7}</td></tr>
+          </tbody>
+        </table>
+        <p class="why">四个方向对应模 M 的步长 1、a、4n + 2、4n + 4。把各轨道空位换算为轨道坐标后，循环相邻间距均不超过 n，因此覆盖全部 n 长窗口。相对 (n + 2)/n<sup>2</sup> 减少 4/[n<sup>2</sup>(4n + 2)]。</p>
+      </li>
+
+      <li class="m">
+        <h3>5　两段斜率 2 的族</h3>
+        <p>适用 n ≡ 4 (mod 12)，n ≥ 16。令 h = n/2，在 n×n 晶胞内取：</p>
+        <pre class="set">A = {((2y − 1) mod n, y) : 1 ≤ y ≤ h}
+B = {(2(y − h + 1) mod n, y) : h − 1 ≤ y ≤ n − 1}
+C = {(h, 0)}</pre>
+        <p>空位集合为 A ∪ B ∪ C，按 (n, 0)、(0, n) 平铺，共 n + 2 个空位。</p>
+        <p class="why">第一段用 x = 2y − 1，第二段用 x = 2(y − h + 1)，两段在切换行附近重叠，再补 (h, 0)，并集计数为 n + 2。</p>
+      </li>
+
+    </ol>
+
+    <div class="noteBox">
+      <p><b>最优性</b>：n = 1, …, 7 与 n ≡ 1, 5 (mod 6) 已证全局最优。其余 n 的记录只作为已实现的构造上界，尚未证明全局最优；两段斜率 3 族在普通 n×n 周期类别中的最优性，也不等于任意无限构造的全局最优性。</p>
+    </div>
   </section>
 
   <footer class="foot">
