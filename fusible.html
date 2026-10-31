@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>fusible numbers</title>
+<title>从燃绳问题到 ε₀：伪燃烧数与间断点的序数 | Dstty</title>
+<meta name="description" content="从不均匀燃绳问题推导融合公式、伪燃烧数递归，解释间断点如何按 ω、ω²、ω^ω 计数，以及整体序型为什么是 ε₀。">
+<link rel="stylesheet" href="./fusible-numbers/katex/katex.min.css">
+<script defer src="./fusible-numbers/katex/katex.min.js" onload="renderArticleMath()"></script>
 <meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="./theme.css">
 <script>
@@ -52,6 +55,7 @@
     font-size:clamp(2rem,6vw,3.3rem);line-height:1.08;letter-spacing:-.02em;
   }
   .def{max-width:60ch;margin:0;color:var(--ink-2)}
+  .meta{font-size:.76rem;color:var(--ink-3);margin-top:1.2rem}
 
   .wrap{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
 
@@ -62,18 +66,42 @@
   }
   .article p{max-width:66ch;color:var(--ink-2);font-size:.94rem;margin:0 0 .8rem}
 
-  /* 待补占位 */
-  .ph{
-    display:inline-flex;align-items:center;gap:.55rem;
-    margin:0 0 .6rem;padding:.5rem .75rem;
-    border:1px dashed var(--line);border-radius:2px;
-    background:var(--fill);
-    font-family:var(--mono);font-size:.76rem;letter-spacing:.02em;color:var(--ink-3);
-  }
-  .ph::before{
-    content:"";width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:var(--line);
-  }
-  .ph-stack{display:flex;flex-direction:column;align-items:flex-start;gap:.5rem;margin:.4rem 0 1.4rem}
+  .toc{display:flex;flex-wrap:wrap;gap:.6rem 1.2rem;padding:1.1rem 0 1.8rem;font-size:.8rem;color:var(--ink-2)}
+  .toc a{text-decoration:none;border-bottom:1px solid var(--line)}
+  .toc a:hover,.article a:hover{color:var(--accent)}
+  .article{max-width:48rem;margin:0 auto;border:0;padding:0}
+  .article section{border-top:1px solid var(--line);padding:2.4rem 0 1.8rem;scroll-margin-top:5rem}
+  .article .section-no{font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:.09em;margin-bottom:.7rem}
+  .article h2{line-height:1.4;margin-bottom:1.2rem}
+  .article h3{font-family:var(--serif);font-size:1.12rem;margin:1.9rem 0 .8rem;font-weight:600;line-height:1.5}
+  .article p{max-width:none;font-size:1rem;line-height:1.95;margin-bottom:1.1rem;overflow-wrap:break-word}
+  .article strong{color:var(--ink);font-weight:600}
+  .article a{text-underline-offset:3px}
+  .math{overflow-x:auto;overflow-y:hidden;padding:.35rem .25rem;margin:.8rem 0 1.2rem;max-width:100%}
+  .math.key{background:var(--accent-soft);border-left:2px solid var(--accent);padding:.6rem 1rem}
+  .katex-display{margin:.6em 0;font-size:1.03em}
+  .note{padding:1rem 1.2rem;border-left:2px solid var(--line-strong);background:var(--fill);color:var(--ink-2);font-size:.92rem;line-height:1.85;margin:1.4rem 0}
+  .timeline{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin:1.5rem 0;background:var(--fill)}
+  .timeline>div{padding:1rem;border-right:1px solid var(--line)}
+  .timeline>div:last-child{border:0}
+  .timeline strong{display:block;color:var(--accent);font-family:var(--mono);font-size:.9rem;margin-bottom:.5rem}
+  .timeline span{display:block;font-size:.83rem;color:var(--ink-2);line-height:1.7}
+  .table-wrap{overflow-x:auto;margin:1.5rem 0}
+  table{border-collapse:collapse;min-width:32rem;width:100%;font-size:.9rem;text-align:left}
+  caption{text-align:left;font-size:.8rem;color:var(--ink-3);margin-bottom:.8rem}
+  th,td{border-bottom:1px solid var(--line);padding:.65rem .8rem;white-space:nowrap}
+  th{color:var(--ink);font-weight:600;background:var(--fill)}
+  td{color:var(--ink-2)}
+  details{border:1px solid var(--line);padding:1rem;margin:1.4rem 0;color:var(--ink-2)}
+  summary{cursor:pointer;color:var(--ink);font-size:.9rem}
+  pre{overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.7;padding:1rem;background:var(--fill)}
+  details p{font-size:.9rem!important}
+  .plot{margin:1.6rem 0;padding:1rem;border:1px solid var(--line);background:var(--fill)}
+  .plot svg{display:block;width:100%;height:auto}
+  figcaption{color:var(--ink-3);font-size:.8rem;line-height:1.7;margin-top:.8rem}
+  .references p{font-size:.9rem}
+  .math-error{color:var(--accent);white-space:pre-wrap}
+  @media(max-width:520px){.timeline{grid-template-columns:1fr}.timeline>div{border-right:0;border-bottom:1px solid var(--line)}.crumb{font-size:.6rem}.math{font-size:.88rem}.article section{padding-top:1.8rem}.plot{padding:.35rem}}
 
   /* 演示入口 */
   .demo{
@@ -126,6 +154,30 @@
 
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
+<script>
+function renderArticleMath(){
+  if(!window.katex || document.readyState==='loading') return;
+  var nodes=[];
+  var walker=document.createTreeWalker(document.querySelector('article'),NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()){
+    var n=walker.currentNode;
+    if(!n.parentElement.closest('pre,code,script,style,.katex') && /\\[([]/.test(n.nodeValue)) nodes.push(n);
+  }
+  nodes.forEach(function(n){
+    var re=/\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)/g;
+    var value=n.nodeValue,last=0,m,fragment=document.createDocumentFragment();
+    while((m=re.exec(value))){
+      fragment.appendChild(document.createTextNode(value.slice(last,m.index)));
+      var span=document.createElement('span');
+      try{katex.render(m[1]===undefined?m[2]:m[1],span,{displayMode:m[1]!==undefined,throwOnError:true,strict:'error',trust:false});}
+      catch(e){span.className='math-error';span.textContent=m[0];console.error('Math rendering:',e);}
+      fragment.appendChild(span);last=re.lastIndex;
+    }
+    if(last){fragment.appendChild(document.createTextNode(value.slice(last)));n.replaceWith(fragment);}
+  });
+}
+document.addEventListener('DOMContentLoaded',renderArticleMath);
+</script>
 </head>
 <body>
 
@@ -138,23 +190,207 @@
 
 <header class="head">
   <p class="kicker">Note</p>
-  <h1>fusible numbers</h1>
-  <p class="def">关于 fusible numbers 的一篇笔记。正文还没写，先把结构和对应的演示入口放好。</p>
+  <h1>从燃绳问题到 ε₀</h1>
+  <p class="def">一根绳子、一条递归，以及藏在间断点里的超限顺序。由融合公式出发，推导伪燃烧数函数，再用序数读懂它的图像。</p>
+  <p class="meta">数学笔记 · 2026 年 10 月 31 日</p>
 </header>
 
 <main class="wrap">
 
-  <section class="article">
-    <h2>正文</h2>
-    <div class="ph-stack">
-      <p class="ph">引言 · 待补</p>
-      <p class="ph">第一节标题 · 待补</p>
-      <p class="ph">第一节正文 · 待补</p>
-      <p class="ph">第二节标题 · 待补</p>
-      <p class="ph">第二节正文 · 待补</p>
-    </div>
-    <p>写的时候把上面的占位块换成正常段落即可，样式沿用这里已有的标题与正文规则。</p>
-  </section>
+  <nav class="toc" aria-label="文章目录">
+    <a href="#puzzle">01 燃绳问题</a><a href="#fusion">02 融合公式</a><a href="#recursion">03 递归函数</a><a href="#jumps">04 间断点</a><a href="#ordinals">05 用序数计数</a><a href="#epsilon">06 为什么是 ε₀</a>
+  </nav>
+
+  <article class="article">
+    <section id="puzzle">
+      <p class="section-no">01 / 问题</p>
+      <h2>一根不均匀燃烧的绳子，能告诉我们什么？</h2>
+      <p>有若干根绳子，每根从一端点燃，烧完恰好需要一小时。但它们烧得不均匀：前半段可能烧了五分钟，后半段却要五十五分钟。你可以在起点，或观察到某根绳子燃尽时，点燃另一根绳子的一端或两端。没有钟，也不剪断、不熄灭绳子。</p>
+      <p>最著名的提问是：用两根绳子，怎样测出四十五分钟？</p>
+      <p>在同一时刻点燃第一根的两端、第二根的一端。第一根半小时后烧完，这时点燃第二根的另一端。第二根原本还需单端燃烧半小时，现在两端一起烧，只需再过十五分钟。于是，它燃尽时正好是第四十五分钟。</p>
+      <div class="timeline" role="img" aria-label="零分钟点燃第一根两端和第二根一端，三十分钟第一根燃尽并点燃第二根另一端，四十五分钟第二根燃尽">
+        <div><strong>0 分钟</strong><span>第一根：两端点火<br>第二根：单端点火</span></div>
+        <div><strong>30 分钟</strong><span>第一根燃尽<br>第二根另一端点火</span></div>
+        <div><strong>45 分钟</strong><span>第二根燃尽<br>计时结束</span></div>
+      </div>
+      <p>这里用的是理想化燃烧模型：每一小段绳子有固定的燃烧时间，从哪一侧接近都一样；两处火焰同时燃烧，互不改变彼此的燃烧性质。两端点火使总燃烧时间减半，但火焰相遇的位置未必是长度的中点。</p>
+      <p>四十五分钟只是开头。真正的问题是：如果绳子足够多，我们能够制造哪些精确的燃尽时刻？把这些时刻从小到大排列，会出现什么结构？</p>
+    </section>
+
+    <section id="fusion">
+      <p class="section-no">02 / 从绳子到运算</p>
+      <h2>为什么会出现 (a + b + 1) / 2？</h2>
+      <p>把一小时记作一个时间单位。设一根绳子的两端分别在时刻 \(a\)、\(b\) 点燃，先假设 \(a\le b\)。到第二端点燃时，第一端已经烧了 \(b-a\) 个时间单位，所以剩余的“单端燃烧时间”为：</p>
+      <div class="math">\[1-(b-a).\]</div>
+      <p>接下来两端一起烧，剩余时间再除以二。燃尽时刻就是：</p>
+      <div class="math key">\[T=b+\frac{1-(b-a)}2=\boxed{\frac{a+b+1}2}.\]</div>
+      <p>第二端点火时，绳子必须还没烧完，因此要求 \(b-a<1\)。不预先规定谁先点火时，条件写作 \(|a-b|<1\)。我们把这次操作记成“融合”：</p>
+      <div class="math">\[a\sim b:=\frac{a+b+1}{2},\qquad |a-b|<1.\]</div>
+      <p>从时刻 \(0\) 出发，不断把已经得到的时刻拿来融合，形成全体<strong>可熔数</strong>，也就是这里所说的燃烧数，记作 \(\mathcal F\)。例如：</p>
+      <div class="math">\[0\sim0=\frac12,\qquad 0\sim\frac12=\frac34,\qquad 0\sim\frac34=\frac78.\]</div>
+      <p>只点燃一端也没有增加新的可达时刻：从时刻 \(a\) 开始，连续使用两根双端点燃的绳子，同样能得到 \(a+1\)。不过两种做法消耗的绳子数不同。</p>
+      <aside class="note"><strong>这里研究的是时刻。</strong>第 30 分钟与第 45 分钟都是可识别时刻，两者之间隔了 15 分钟。但第 15 分钟本身并非从零出发可得到的燃尽时刻：任何一根完整绳子，最早也要半小时才能烧完。</aside>
+    </section>
+
+    <section id="recursion">
+      <p class="section-no">03 / 一个寻找下一个时刻的算法</p>
+      <h2>从融合公式到伪燃烧数函数</h2>
+      <p>集合可以靠不断融合来生成，但若想回答“超过 \(x\) 的下一个点在哪里”，把所有融合表达式都列出来并不理想。我们先尝试一种有明确选择顺序的递归构造。</p>
+      <p>把它产生的点集记作 \(T\)，严格后继记作：</p>
+      <div class="math">\[S(x)=\min\{t\in T:t>x\}.\]</div>
+      <p>“严格”意味着：即使 \(x\) 本身已经是一个点，也继续找比它大的那个点。对负数，最早的非负点是 \(0\)，所以规定 \(S(x)=0\)。</p>
+      <h3>先把第一端安排得尽量早</h3>
+      <p>若要一次融合的结果 \(z=a\sim b\) 超过 \(x\)，合法性给出 \(z<a+1\)，所以第一端时刻必须满足 \(a>x-1\)。这个策略便选择：</p>
+      <div class="math">\[a=S(x-1).\]</div>
+      <p>固定了 \(a\)，条件 \((a+b+1)/2>x\) 等价于 \(b>2x-a-1\)。于是再选：</p>
+      <div class="math">\[b=S(2x-a-1),\qquad S(x)=a\sim b.\]</div>
+      <aside class="note"><strong>这是构造策略，不是对全体燃烧数的贪心最优证明。</strong>第一端选得最早，并不自动保证最终融合结果在所有方案中最小。论文证明，这个递归恰好求出驯服可熔数集 \(T\) 的严格后继；\(T\) 是 \(\mathcal F\) 的真子集。本文称相关函数为“伪燃烧数函数”，文献记作 \(M\)。</aside>
+      <h3>把后继坐标换成“离后继还有多远”</h3>
+      <p>定义间隙函数：</p>
+      <div class="math">\[f(x)=S(x)-x,\qquad S(x)=x+f(x).\]</div>
+      <p>当 \(x<0\)，\(S(x)=0\)，立即得到 \(f(x)=-x\)。当 \(x\ge0\)，先把前面的 \(a\) 写成：</p>
+      <div class="math">\[a=S(x-1)=x-1+f(x-1).\]</div>
+      <p>第二次调用的输入于是变成：</p>
+      <div class="math">\[u=2x-a-1=x-f(x-1).\]</div>
+      <p>接着 \(b=S(u)=u+f(u)\)，代回融合公式：</p>
+      <div class="math">\[\begin{aligned}S(x)&=\frac{a+b+1}{2}\\&=\frac{a+(2x-a-1)+f(u)+1}{2}\\&=x+\frac{f(u)}2.\end{aligned}\]</div>
+      <p>减去 \(x\)，就得到那条看起来颇为神秘的递归：</p>
+      <div class="math key">\[\boxed{f(x)=\begin{cases}-x,&x<0,\\[2mm]\dfrac12f\bigl(x-f(x-1)\bigr),&x\ge0.\end{cases}}\]</div>
+      <p>它的每个部分都有来源：\(x-1\) 来自合法融合的时间窗口，内层的减法来自对第二端阈值的反解，最外面的二分之一来自双端燃烧。</p>
+      <p>这里的代数变形解释了公式如何产生；递归在所有实数上终止、且确实得到 \(T\) 的后继，则是论文证明的定理。仅凭“每次输入都变小”还不足以证明实数递归终止，因为实数中存在无限严格下降链。</p>
+      <h3>手算几个值</h3>
+      <div class="math">\[\begin{aligned}f(0)&=\tfrac12f(-1)=\tfrac12,\\f(\tfrac12)&=\tfrac12f(0)=\tfrac14,\\f(\tfrac34)&=\tfrac12f(\tfrac12)=\tfrac18,\\f(1)&=\tfrac12f(\tfrac12)=\tfrac18.\end{aligned}\]</div>
+      <p>比如最后一行中，\(f(0)=1/2\)，所以外层递归的输入是 \(1-f(0)=1/2\)。函数值不是下一个点的坐标，而是距离：\(S(1)=1+1/8=9/8\)。</p>
+      <details><summary>用精确分数直接计算</summary>
+        <pre><code>from fractions import Fraction
+from functools import cache
+
+@cache
+def f(x):
+    if x &lt; 0:
+        return -x
+    return f(x - f(x - 1)) / 2
+
+print(f(Fraction(1)))  # 1/8</code></pre>
+        <p>这是定义的直接实现，适合小输入。应使用精确分数；浮点舍入可能让“本来大于零的极小间隙”消失。数学终止性也不等于实际运行成本很小。</p>
+      </details>
+    </section>
+
+    <section id="jumps">
+      <p class="section-no">04 / 图像里藏着的点集</p>
+      <h2>为什么间断点恰好就是这些时刻？</h2>
+      <p>设 \(a\in T\)，\(b=S(a)\) 是它的下一个点。由于 \([a,b)\) 内的所有输入都有同一个严格后继 \(b\)，所以：</p>
+      <div class="math key">\[f(x)=b-x,\qquad a\le x<b.\]</div>
+      <p>图像在这一段是斜率 \(-1\) 的直线，随着 \(x\) 接近 \(b\)，函数值降到零；到达 \(b\) 时，严格后继换成下一个点，函数重新跳起。因此，间断点之间的距离，正好等于左端点的跳跃高度。</p>
+      <figure class="plot">
+        <svg viewBox="0 0 760 250" role="img" aria-labelledby="saw-title saw-desc">
+          <title id="saw-title">伪燃烧数函数在零到一之间的前几段图像</title>
+          <desc id="saw-desc">每段斜率负一，断点位于零、二分之一、四分之三、八分之七等处，并向一聚集。在一处函数再次向上跳至八分之一。只画出有限段。</desc>
+          <g stroke="var(--line)" stroke-width="1"><path d="M55 35H710M55 110H710M55 185H710"/></g>
+          <path d="M55 22V200H720" fill="none" stroke="var(--ink-3)"/>
+          <g fill="var(--ink-2)" font-size="15" font-family="serif"><text x="18" y="40">½</text><text x="18" y="115">¼</text><text x="43" y="222">0</text><text x="350" y="222">½</text><text x="498" y="222">¾</text><text x="638" y="222">1</text><text x="725" y="201">x</text><text x="15" y="21">f(x)</text></g>
+          <g fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M55 35L355 185M355 110L505 185M505 147.5L580 185M580 166.25L617.5 185M617.5 175.625L636.25 185M636.25 180.3125L645.625 185M655 147.5L710 175"/></g>
+          <g fill="var(--accent)"><circle cx="55" cy="35" r="4"/><circle cx="355" cy="110" r="4"/><circle cx="505" cy="147.5" r="4"/><circle cx="580" cy="166.25" r="4"/><circle cx="617.5" cy="175.625" r="3"/><circle cx="655" cy="147.5" r="4"/></g>
+          <g fill="var(--paper)" stroke="var(--accent)" stroke-width="2"><circle cx="355" cy="185" r="4"/><circle cx="505" cy="185" r="4"/><circle cx="580" cy="185" r="4"/><circle cx="617.5" cy="185" r="3"/><circle cx="655" cy="185" r="4"/></g>
+        </svg>
+        <figcaption>实心点是函数实际取值，空心点表示左侧趋近的零值。只画出有限段；断点在 1 的左侧还有无限多个。</figcaption>
+      </figure>
+      <p>对任意 \(a\in T\)，从左侧取 \(x<a\)，由于 \(a\) 已经是一个候选后继：</p>
+      <div class="math">\[0<f(x)=S(x)-x\le a-x.\]</div>
+      <p>所以 \(f(a^-)=0\)。另一方面，\(f(a)=S(a)-a>0\)，并且右侧仍沿同一条直线走，故 \(f(a^+)=f(a)\)。这也适用于 \(a=0\)，其左侧由 \(f(x)=-x\) 趋向零。</p>
+      <p>论文中的 \(T\) 是闭良序集；在 \(T\) 之外，严格后继局部不变，因此函数局部为直线。于是没有额外的间断点。若以 \(D\) 表示间断点集，就有：</p>
+      <div class="math">\[\boxed{D=T,\qquad f(a^-)=0<f(a)=f(a^+)\quad(a\in D).}\]</div>
+      <p>尤其要留意聚点。例如 \(1/2,3/4,7/8,\ldots\) 逼近 \(1\)，但 \(1\) 自己仍是跳跃间断点：\(f(1^-)=0\)，而 \(f(1)=1/8\)。</p>
+    </section>
+
+    <section id="ordinals">
+      <p class="section-no">05 / 从数点到数顺序</p>
+      <h2>“前面有多少个间断点”，为什么要用序数？</h2>
+      <p>若只问点的个数，下面这些无限初段都只是可数无穷，基数都是 \(\aleph_0\)。但它们的排列方式并不一样：有的是一条无限序列，有的是无限多条无限序列接在一起，有的还包含更高层的聚集。</p>
+      <p><strong>序数记录的正是这种顺序结构。</strong>我们从零编号，定义：</p>
+      <div class="math key">\[r(a)=\operatorname{ot}\bigl(D\cap[0,a)\bigr),\qquad a\in D.\]</div>
+      <p>这里 \(\operatorname{ot}\) 表示按实数大小排列后的序型，右端点 \(a\) 本身不计入。用 \(\Phi\) 表示反向对应，即 \(\Phi(r(a))=a\)。</p>
+      <h3>第一层：ω 是一整条无限序列</h3>
+      <p>在 \(1\) 之前，间断点恰好为：</p>
+      <div class="math">\[\Phi(n)=1-2^{-n}\quad(n=0,1,2,\ldots).\]</div>
+      <p>因此 \(0\) 编号为 0，\(1/2\) 编号为 1，\(3/4\) 编号为 2，依次类推。所有有限编号用完后，这些点的极限 \(1\) 获得编号：</p>
+      <div class="math">\[r(1)=\omega.\]</div>
+      <p>\(\omega\) 不是“最大的自然数”，它是全部自然数按通常次序排成的一条序列的序型。在这条序列后面再放一个点，才得到 \(\omega+1\)。</p>
+      <h3>第二层：一块 ω，再接一块 ω</h3>
+      <p>在 \(1\) 之后，最初的一块是：</p>
+      <div class="math">\[1,\ \frac98,\ \frac{19}{16},\ \frac{39}{32},\ldots\ \longrightarrow\ \frac54.\]</div>
+      <p>这些点的编号依次是 \(\omega,\omega+1,\omega+2,\ldots\)，所以 \(5/4\) 的编号是 \(\omega\cdot2\)。再往后还有第三块、第四块……它们的边界也在聚集。</p>
+      <p>更精确地，对 \(k\ge1\)、\(n\ge0\)，初始的这些块满足：</p>
+      <div class="math">\[\Phi(\omega k+n)=\frac32-2^{-(k+1)}-2^{-(k+n+1)}.\]</div>
+      <p>固定 \(k\)，让 \(n\) 增大，会走完一条 \(\omega\) 长的序列；再让 \(k\) 增大，无限多块接起来，得到 \(\omega\cdot\omega=\omega^2\)。因此：</p>
+      <div class="math">\[r\!\left(\frac32\right)=\omega^2.\]</div>
+      <h3>第三层：把“无限多块”继续当成块</h3>
+      <p>层级继续增长，出现 \(\omega^3,\omega^4,\ldots\)。对于正整数 \(n\)，有：</p>
+      <div class="math">\[\Phi(\omega^n)=2-2^{1-n}.\]</div>
+      <p>对应的实数是 \(1,3/2,7/4,15/8,\ldots\)，趋向 \(2\)；序数则趋向 \(\sup_n\omega^n=\omega^\omega\)。于是：</p>
+      <div class="math">\[r(2)=\omega^\omega.\]</div>
+      <div class="table-wrap"><table>
+        <caption>零起始编号：点之前的间断点序型</caption>
+        <thead><tr><th scope="col">间断点 a</th><th scope="col">序数编号 r(a)</th><th scope="col">跳跃高度 f(a)</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>\(0\)</td><td>\(1/2\)</td></tr>
+          <tr><td>1/2</td><td>\(1\)</td><td>\(1/4\)</td></tr>
+          <tr><td>3/4</td><td>\(2\)</td><td>\(1/8\)</td></tr>
+          <tr><td>1</td><td>\(\omega\)</td><td>\(1/8\)</td></tr>
+          <tr><td>9/8</td><td>\(\omega+1\)</td><td>\(1/16\)</td></tr>
+          <tr><td>5/4</td><td>\(\omega\cdot2\)</td><td>\(1/16\)</td></tr>
+          <tr><td>11/8</td><td>\(\omega\cdot3\)</td><td>\(1/32\)</td></tr>
+          <tr><td>3/2</td><td>\(\omega^2\)</td><td>\(1/32\)</td></tr>
+          <tr><td>25/16</td><td>\(\omega^2+\omega\)</td><td>\(1/64\)</td></tr>
+          <tr><td>7/4</td><td>\(\omega^3\)</td><td>\(1/128\)</td></tr>
+          <tr><td>2</td><td>\(\omega^\omega\)</td><td>\(2^{-10}\)</td></tr>
+          <tr><td>3</td><td>\(\omega^{\omega^\omega}\)</td><td>\(2^{-1541023937}\)</td></tr>
+        </tbody>
+      </table></div>
+      <aside class="note"><strong>端点约定会改变答案。</strong>\([0,1)\) 的间断点序型是 \(\omega\)，\([0,1]\) 则是 \(\omega+1\)。同样，\(r(2)=\omega^\omega\) 表示 \(2\) 之前的点，不包括 \(2\) 本身。序数加法还依赖顺序：\(1+\omega=\omega\)，但 \(\omega+1>\omega\)。</aside>
+      <h3>间断点的聚集，也可以分层</h3>
+      <p>先把所有孤立点去掉，只留下聚点；再对剩下的集合做同样操作，就得到“聚点的聚点”。如此继续，必要时在极限阶段取此前各层的交集。这叫 Cantor–Bendixson 导集过程。</p>
+      <p>编号为后继序数的点在 \(D\) 中是孤立点；编号为非零极限序数的点是聚点。\(1\) 的编号是 \(\omega\)，属于第一层聚点；\(3/2\) 的编号是 \(\omega^2\)，是第二层；\(2\) 的编号是 \(\omega^\omega\)，层数已经是 \(\omega\)。</p>
+      <p>更一般地，把非零编号写成康托标准形：</p>
+      <div class="math">\[\alpha=\omega^{\alpha_1}c_1+\cdots+\omega^{\alpha_k}c_k,\qquad \alpha_1>\cdots>\alpha_k.\]</div>
+      <p>点 \(\Phi(\alpha)\) 的聚点层数恰好是最后一个指数 \(\alpha_k\)，约定孤立点为第 0 层。例如 \(\omega^2+\omega\) 最后一项的指数是 1，所以 \(25/16\) 是第一层聚点。这里说的是点集的聚集层级；这些点本身仍然全部是函数的跳跃间断点。</p>
+    </section>
+
+    <section id="epsilon">
+      <p class="section-no">06 / 有限绳子与超限结构</p>
+      <h2>为什么整套编号走到了 ε₀？</h2>
+      <p>前面的对应不是巧合。论文第四节引理 24 给出关键结构定理：对每个 \(a\in D\)，</p>
+      <div class="math key">\[\boxed{r(a+1)=\omega^{\,1+r(a)}.}\]</div>
+      <p>它把实数轴上的“往后移动一小时”，变成了序数上的“取一个以 \(\omega\) 为底的幂”。注意指数里的 \(1+r(a)\) 是序数加法，顺序应当保留。对于无限编号，\(1+r(a)=r(a)\)。</p>
+      <h3>这条结构定理从哪里来？</h3>
+      <p>驯服集合的定义给出一种有序复制规则。取相邻点 \(p<q\)，令 \(m=q-p\)。把已经构造好的区间 \([p+1-m,p+1)\) 中的点，逐个与 \(q\) 融合，就把整个点集缩小一半，复制到 \([p+1,p+1+m/2)\)。对复制结果继续融合，便得到下一块，再下一块，所有块依次逼近 \(q+1\)。</p>
+      <div class="math">\[u\longmapsto q\sim u=\frac{q+u+1}{2}.\]</div>
+      <p>这个映射保持点的先后顺序，同时把距离减半。于是每个新时间窗口里，都出现了无限多份旧结构。顺次接起 \(\omega\) 份，是序数的右乘 \(\omega\)；当边界本身也是旧结构的极限时，再取序数上确界。</p>
+      <p>例如，\(p=0,q=1/2\) 时，把 \([1/2,1)\) 里的无限序列复制到 \([1,5/4)\)，再复制到 \([5/4,11/8)\)，如此形成 \(\omega\) 块，并逼近 \(3/2\)。这解释了 \(3/2\) 前为什么会有 \(\omega^2\) 型的点。</p>
+      <p>对这种复制过程作超限归纳，便得到上面的结构定理。这里给出的是证明机制；完整的窗口不变量与极限步骤见论文第四节，不能仅凭一张有限分辨率的图来代替。</p>
+      <h3>整数位置，依次对应越来越高的幂塔</h3>
+      <div class="math">\[\begin{aligned}r(0)&=0,\\r(1)&=\omega,\\r(2)&=\omega^\omega,\\r(3)&=\omega^{\omega^\omega},\\r(4)&=\omega^{\omega^{\omega^\omega}},\quad\ldots\end{aligned}\]</div>
+      <p>设 \(\tau_1=\omega\)，\(\tau_{n+1}=\omega^{\tau_n}\)。则 \(r(n)=\tau_n\)，这些有限高度幂塔的上确界是：</p>
+      <div class="math">\[\varepsilon_0=\sup_{n\ge1}\tau_n.\]</div>
+      <p>它也是满足 \(\omega^\alpha=\alpha\) 的最小正序数。每个有限实数都在某个整数之前，而整数对应的编号已经在 \(\varepsilon_0\) 中共尾，所以：</p>
+      <div class="math key">\[\boxed{\operatorname{ot}(D)=\varepsilon_0.}\]</div>
+      <p>这里没有一个有限坐标对应“第 \(\varepsilon_0\) 个点”。\(\varepsilon_0\) 描述整个无界间断点集的序型；各个点的编号都严格小于它。每个具体点依然由有限构造给出，但所有有限构造按大小合在一起，就形成了超限的顺序结构。</p>
+      <h3>序数告诉我们结构，不承诺计算容易</h3>
+      <p>点 \(3\) 的编号仅需写成 \(\omega^{\omega^\omega}\)，可它到下一个点的距离却是：</p>
+      <div class="math">\[f(3)=2^{-1541023937}.\]</div>
+      <p>因此，短小的递归式很快就会产生极端微小的间隙。论文还证明：这个递归对所有实数输入都终止，但“它对所有自然数输入都终止”这一统一命题在皮亚诺算术 PA 中不可证明。单个输入的计算与全体输入的统一终止证明，是不同层面的问题。</p>
+      <p>从燃绳问题出发，我们先得到一个平均运算，再得到后继与间隙，最后在间断点的聚集方式里读出序数。真正把它们连起来的，是同一条规则的反复作用：<strong>把已有的时间结构缩小，再按顺序复制。</strong></p>
+    </section>
+
+    <section id="references" class="references">
+      <p class="section-no">参考与核查</p>
+      <h2>读到这里，哪些结论来自哪里？</h2>
+      <p>主要文献为 Jeff Erickson、Gabriel Nivasch、Junyan Xu：<cite>Fusible numbers and Peano Arithmetic</cite>，<i>Logical Methods in Computer Science</i>，18(3:6)，2022。<a href="https://arxiv.org/html/2003.14342v9">HTML 全文</a> · <a href="https://arxiv.org/abs/2003.14342">摘要与版本记录</a> · <a href="https://doi.org/10.46298/lmcs-18%283%3A6%292022">期刊版本</a>。</p>
+      <p>导言讨论燃绳谜题及融合公式；第四节定义驯服可熔数，表 2 给出后继算法与函数 \(M\)；引理 24 给出序数幂对应，引理 25、26 描述间隙递推；第四节末给出 \(M(3)\) 的精确值；定理 3(3) 讨论递归终止性及 PA 的证明强度。</p>
+      <p>本文中 \(D=T\) 的间断点刻画，由严格后继公式和 \(T\) 的闭性推出；零起始编号与聚点层数按本文约定整理。普通燃烧数与驯服集合虽都具有序型 \(\varepsilon_0\)，具体坐标对应的编号仍有区别，例如 \(8449/4096\) 属于前者，却不属于后者。</p>
+      <p>配套的<a href="https://github.com/Dstty/fusible-numbers/blob/main/%E7%A0%94%E7%A9%B6%E6%8A%A5%E5%91%8A.md">研究报告</a>记录了精确互译与实现细节。下方演示可以输入点坐标或序数，检查文中的对应；其有限计算结果与图像用于辅助理解，全域定理仍以文献证明为依据。</p>
+    </section>
+  </article>
 
   <section class="demo">
     <h2>演示</h2>
@@ -169,7 +405,7 @@
   </section>
 
   <footer class="foot">
-    <p>正文待写。写完把 <code>fusible.html</code> 里的占位块替换掉就行。</p>
+    <p>Dstty · 从燃绳问题到 ε₀ · <a href="#">回到顶部</a></p>
   </footer>
 
 </main>
