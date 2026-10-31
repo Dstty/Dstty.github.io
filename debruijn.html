@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>环面 de Bruijn 构造 · Dstty</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="./theme.css">
+<script>
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('dstty-theme'); } catch (e) {}
+  document.documentElement.setAttribute('data-theme', t || 'dark');
+})();
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);font-size:16.5px;line-height:1.72;
+  }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    background:var(--btn-bg);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar__in{
+    max-width:var(--wide);margin:0 auto;padding:.85rem var(--pad);
+    display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-2);transition:color .2s ease;
+  }
+  .back:hover{color:var(--accent)}
+  .crumb{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  .head{max-width:var(--wide);margin:0 auto;padding:clamp(2.4rem,7vw,4.5rem) var(--pad) clamp(1.2rem,3vw,2rem)}
+  .kicker{
+    display:flex;align-items:center;gap:.7rem;margin:0 0 1.2rem;
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .kicker::before{content:"";width:2rem;height:1px;background:var(--accent);opacity:.85}
+  h1{
+    margin:0 0 1.1rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(2rem,6vw,3.3rem);line-height:1.08;letter-spacing:-.02em;
+  }
+  .def{max-width:62ch;margin:0;color:var(--ink-2)}
+  .def b{font-weight:500;color:var(--ink)}
+
+  .wrap{max-width:var(--wide);margin:0 auto;padding:0 var(--pad)}
+  .rules{
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--fill);
+    padding:1rem 1.1rem;margin:0 0 clamp(1.6rem,4vw,2.4rem);
+  }
+  .rules h2{
+    margin:0 0 .6rem;font-family:var(--mono);font-size:.68rem;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:400;
+  }
+  .rules ul{margin:0;padding-left:1.1rem;font-size:.9rem;color:var(--ink-2)}
+  .rules li{margin:.3rem 0}
+
+  .build{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:clamp(1rem,3vw,2.2rem);align-items:start;
+    padding:clamp(1.4rem,3.5vw,2.2rem) 0;border-top:1px solid var(--line);
+  }
+  .col{min-width:0}
+  .fig{
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--paper-2);padding:.6rem;
+  }
+  .fig canvas{display:block;width:100%;aspect-ratio:1/1;height:auto;cursor:pointer}
+  .txt{min-width:0}
+  .tag{margin:0 0 .55rem;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .txt h2{
+    margin:0 0 .6rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.2rem,2.6vw,1.5rem);line-height:1.25;letter-spacing:-.01em;
+  }
+  .txt p{margin:0 0 .7rem;font-size:.9rem;color:var(--ink-2);max-width:52ch}
+  .txt p:last-child{margin-bottom:0}
+  .why{color:var(--ink-3);font-size:.85rem;border-left:2px solid var(--line);padding-left:.8rem}
+  .txt code{
+    font-family:var(--mono);font-size:.78rem;
+    background:var(--fill-2);border:1px solid var(--line);border-radius:2px;padding:.08em .3em;
+  }
+  .mx{
+    font-family:var(--mono);font-size:.72rem;line-height:1.6;
+    margin:.7rem 0;padding:.7rem .8rem;
+    background:var(--fill-2);border:1px solid var(--line);border-radius:2px;
+    overflow-x:auto;white-space:pre;color:var(--ink-2);
+  }
+
+  .probe{
+    margin-top:.55rem;
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--fill);
+  }
+  .probe summary{
+    display:flex;align-items:center;gap:.6rem;
+    padding:.55rem .7rem;cursor:pointer;list-style:none;
+    font-family:var(--mono);font-size:.68rem;color:var(--ink-3);
+  }
+  .probe summary::-webkit-details-marker{display:none}
+  .probe summary::before{
+    content:"+";flex:0 0 auto;width:1ch;
+    color:var(--accent);font-size:.82rem;line-height:1;
+  }
+  .probe[open] summary::before{content:"−"}
+  .probe summary:hover{color:var(--ink)}
+  .probe__label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase}
+  .probe__state{margin-left:auto;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .probe__body{display:flex;gap:.9rem;align-items:center;padding:0 .7rem .7rem}
+  .probe canvas{
+    width:96px;height:96px;flex:0 0 96px;display:block;
+    border:1px solid var(--line);border-radius:2px;background:var(--paper-2);
+  }
+  .probe__side{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+  .probe__lab{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .probe__inp{
+    width:9ch;padding:.32rem .5rem;
+    border:1px solid var(--line);border-radius:2px;
+    background:var(--paper-2);color:var(--ink);
+    font-family:var(--mono);font-size:.82rem;
+    transition:border-color .2s ease;
+  }
+  .probe__inp:hover{border-color:var(--ink-3)}
+  .probe__tip{margin:.2rem 0 0;font-size:.72rem;color:var(--ink-3);line-height:1.55}
+
+  .sect{padding:clamp(1.6rem,4vw,2.4rem) 0 0;border-top:1px solid var(--line)}
+  .sect h2{
+    margin:0 0 .8rem;font-family:var(--serif);font-weight:600;
+    font-size:clamp(1.3rem,3vw,1.7rem);letter-spacing:-.01em;
+  }
+  .sect p{max-width:66ch;color:var(--ink-2);font-size:.92rem;margin:0 0 .7rem}
+  .sect ul{padding-left:1.1rem;font-size:.92rem;color:var(--ink-2);max-width:66ch}
+  .sect li{margin:.3rem 0}
+
+  table{width:100%;border-collapse:collapse;font-size:.86rem;margin:.6rem 0 0}
+  th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left}
+  thead th{
+    font-family:var(--mono);font-size:.62rem;font-weight:400;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);
+  }
+  td.num{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
+
+  .foot{
+    max-width:var(--wide);margin:0 auto;
+    padding:clamp(2rem,5vw,3rem) var(--pad) 4rem;
+    font-size:.85rem;color:var(--ink-3);
+  }
+  .foot p{max-width:64ch;margin:0 0 .6rem}
+  .foot p:last-child{margin-bottom:0}
+
+  @media (max-width:900px){
+    .build{grid-template-columns:1fr}
+    .fig{max-width:32rem}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__in">
+    <a class="back" href="./"><span aria-hidden="true">←</span> 返回</a>
+    <span class="crumb">研究 · 环面 de Bruijn</span>
+  </div>
+</div>
+
+<header class="head">
+  <p class="kicker">Research Note</p>
+  <h1>环面 de Bruijn 构造</h1>
+  <p class="def">在环面上放 <b>k</b> 种颜色的格子，要求每个 <b>r×s</b> 窗口读出的图案互不相同。窗口位置数等于图案总数时，全部图案恰好各出现一次，这样的环面就是 de Bruijn 环面。下面三个实例分别覆盖 16、64、81 种窗口图案，都可以点选窗口、按编码反查位置。</p>
+</header>
+
+<main class="wrap">
+
+  <section class="rules">
+    <h2>读法与约定</h2>
+    <ul>
+      <li>行列下标从 0 开始，越界时对边长取模，也就是把平面卷成环面。</li>
+      <li>窗口按行优先读取：先上排从左到右，再下一排。</li>
+      <li>二进制按 2 的幂加权、三进制按 3 的幂加权，得到窗口编码。</li>
+      <li>窗口数等于图案总数时，编码恰好是 0 到 N−1 的一个排列。</li>
+    </ul>
+  </section>
+
+  <section class="build">
+    <div class="col">
+      <div class="fig"><canvas id="t4" role="img" aria-label="4×4 双色 de Bruijn 环面"></canvas></div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">窗口</span>
+          <span class="probe__state" id="s4">编码 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="w4" role="img" aria-label="当前窗口图案"></canvas>
+          <div class="probe__side">
+            <label class="probe__lab" for="i4">编码</label>
+            <input class="probe__inp" id="i4" type="number" min="0" max="15" value="0" inputmode="numeric">
+            <p class="probe__tip">点矩阵选窗口左上角，或输入 0–15 的编码反查位置</p>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="txt">
+      <p class="tag">01 · 4×4 · 双色 · 2×2 窗口</p>
+      <h2>(4, 4; 2, 2)₂</h2>
+      <p>16 个格子里正好 8 个黑格，16 个 2×2 窗口读出 <code>0000</code> 到 <code>1111</code> 各一次。</p>
+      <pre class="mx" id="m4"></pre>
+      <p class="why">穷举全部 C(16, 8) = 12870 个八黑格矩阵共得 32 个解，在环面平移、转置翻转、黑白互换下全部等价，所以这个构造在对称意义下本质唯一。</p>
+    </div>
+  </section>
+
+  <section class="build">
+    <div class="col">
+      <div class="fig"><canvas id="t8" role="img" aria-label="8×8 双色 de Bruijn 环面"></canvas></div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">窗口</span>
+          <span class="probe__state" id="s8">编码 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="w8" role="img" aria-label="当前窗口图案"></canvas>
+          <div class="probe__side">
+            <label class="probe__lab" for="i8">编码</label>
+            <input class="probe__inp" id="i8" type="number" min="0" max="63" value="0" inputmode="numeric">
+            <p class="probe__tip">窗口 3 行 × 2 列，编码范围 0–63</p>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="txt">
+      <p class="tag">02 · 8×8 · 双色 · 3×2 窗口</p>
+      <h2>(8, 8; 3, 2)₂</h2>
+      <p>64 个 3 行 2 列的窗口覆盖 <code>000000</code> 到 <code>111111</code> 各一次，黑格 32 个。</p>
+      <pre class="mx" id="m8"></pre>
+      <p>由第 1 节的 4×4 环面作种子，每列 1 的个数为奇数（列和 3、3、1、1），用 FFMS 奇数构造把 <code>(4,4;2,2)</code> 扩成 <code>(8,8;3,2)</code>：第一行照抄种子首行，之后每行异或种子对应行重复两次得到的掩码，后四行正好是前四行逐位取反。</p>
+    </div>
+  </section>
+
+  <section class="build">
+    <div class="col">
+      <div class="fig"><canvas id="t9" role="img" aria-label="9×9 三色 de Bruijn 环面"></canvas></div>
+      <details class="probe" open>
+        <summary>
+          <span class="probe__label">窗口</span>
+          <span class="probe__state" id="s9">编码 0 · (1, 1)</span>
+        </summary>
+        <div class="probe__body">
+          <canvas id="w9" role="img" aria-label="当前窗口图案"></canvas>
+          <div class="probe__side">
+            <label class="probe__lab" for="i9">编码</label>
+            <input class="probe__inp" id="i9" type="number" min="0" max="80" value="0" inputmode="numeric">
+            <p class="probe__tip">三进制编码 27a + 9b + 3c + d，范围 0–80</p>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="txt">
+      <p class="tag">03 · 9×9 · 三色 · 2×2 窗口</p>
+      <h2>(9, 9; 2, 2)₃</h2>
+      <p>9×9 = 81 个窗口，正好对上 3⁴ = 81 种 2×2 三色图案。首行与首列都是 <code>012012012</code>，三种颜色各出现 27 次。</p>
+      <pre class="mx" id="m9"></pre>
+      <p class="why">这个显式解由 CP-SAT 在“81 个窗口编码两两不同”的约束下求得。9×9 是奇数环面，不能直接套棋盘奇偶的计数论证；首行首列固定为 012012012 只是选定的一个代表。</p>
+    </div>
+  </section>
+
+  <section class="sect">
+    <h2>验证与备注</h2>
+    <p>对每个矩阵，遍历全部窗口位置、按行优先读出编码并去重，与 k<sup>rs</sup> 比较即可判定是否为 de Bruijn 环面。页面加载时也用同一套逻辑重新算了一遍，三者的窗口数分别是 16、64、81，去重后数量与之相等。</p>
+    <table>
+      <thead>
+        <tr><th scope="col">构造</th><th scope="col">环面</th><th scope="col">颜色</th><th scope="col">窗口</th><th scope="col">覆盖</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>(4,4;2,2)₂</td><td class="num">4×4</td><td class="num">2</td><td class="num">2×2</td><td class="num">16 / 16</td></tr>
+        <tr><td>(8,8;3,2)₂</td><td class="num">8×8</td><td class="num">2</td><td class="num">3×2</td><td class="num">64 / 64</td></tr>
+        <tr><td>(9,9;2,2)₃</td><td class="num">9×9</td><td class="num">3</td><td class="num">2×2</td><td class="num">81 / 81</td></tr>
+      </tbody>
+    </table>
+    <p>一般地，k 种颜色、r×s 窗口的 de Bruijn 环面需要 k<sup>rs</sup> 个窗口位置，且格子数必须等于这个数。</p>
+  </section>
+
+  <footer class="foot">
+    <p>图中点击任意格子会把窗口左上角移到那里；窗口跨过边界时会绕回对侧，高亮也会分成两块。</p>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  var COL = {
+    bg: '#fffdf7',
+    grid: 'rgba(20,16,13,.10)',
+    ink: '#1b1613',
+    blue: '#2f5d8c',
+    orange: '#b45f36',
+    mark: '#a6432b'
+  };
+
+  function refreshColors(){
+    var cs = getComputedStyle(document.documentElement);
+    function g(k, fb){ return cs.getPropertyValue(k).trim() || fb; }
+    COL.bg = g('--cv-bg', COL.bg);
+    COL.grid = g('--cv-grid', COL.grid);
+    COL.ink = g('--cv-ink', COL.ink);
+    COL.blue = g('--cv-blue', COL.blue);
+    COL.orange = g('--cv-orange', COL.orange);
+    COL.mark = g('--cv-mark', COL.mark);
+  }
+
+  function fit(canvas){
+    refreshColors();
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return null;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = COL.bg;
+    ctx.fillRect(0, 0, w, h);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  function colorOf(g, v){
+    if (g.k === 2) return v ? COL.ink : COL.bg;
+    return v === 0 ? COL.blue : (v === 1 ? COL.orange : COL.ink);
+  }
+
+  function encodeAt(g, i, j){
+    var v = 0;
+    for (var di = 0; di < g.wh; di++) {
+      for (var dj = 0; dj < g.ww; dj++) {
+        v = v * g.k + g.cells[(i + di) % g.rows][(j + dj) % g.cols];
+      }
+    }
+    return v;
+  }
+
+  function findWindow(g, v){
+    for (var i = 0; i < g.rows; i++) {
+      for (var j = 0; j < g.cols; j++) {
+        if (encodeAt(g, i, j) === v) return { i: i, j: j };
+      }
+    }
+    return null;
+  }
+
+  function drawTorus(canvas, g, win){
+    var f = fit(canvas);
+    if (!f) return null;
+    var ctx = f.ctx;
+
+    var pad = 8;
+    var cell = Math.min((f.w - 2 * pad) / g.cols, (f.h - 2 * pad) / g.rows);
+    var ox = (f.w - cell * g.cols) / 2;
+    var oy = (f.h - cell * g.rows) / 2;
+
+    for (var r = 0; r < g.rows; r++) {
+      for (var c = 0; c < g.cols; c++) {
+        ctx.fillStyle = colorOf(g, g.cells[r][c]);
+        ctx.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+      }
+    }
+
+    // 窗口区域淡底
+    ctx.save();
+    ctx.globalAlpha = 0.20;
+    ctx.fillStyle = COL.mark;
+    for (var di = 0; di < g.wh; di++) {
+      for (var dj = 0; dj < g.ww; dj++) {
+        var rr = (win.i + di) % g.rows;
+        var cc = (win.j + dj) % g.cols;
+        ctx.fillRect(ox + cc * cell, oy + rr * cell, cell, cell);
+      }
+    }
+    ctx.restore();
+
+    // 格线
+    ctx.strokeStyle = COL.grid;
+    ctx.lineWidth = 1;
+    for (var r2 = 0; r2 < g.rows; r2++) {
+      for (var c2 = 0; c2 < g.cols; c2++) {
+        ctx.strokeRect(ox + c2 * cell, oy + r2 * cell, cell, cell);
+      }
+    }
+
+    // 窗口描边
+    ctx.strokeStyle = COL.mark;
+    ctx.lineWidth = 2;
+    for (var di2 = 0; di2 < g.wh; di2++) {
+      for (var dj2 = 0; dj2 < g.ww; dj2++) {
+        var rr2 = (win.i + di2) % g.rows;
+        var cc2 = (win.j + dj2) % g.cols;
+        ctx.strokeRect(ox + cc2 * cell + 1, oy + rr2 * cell + 1, cell - 2, cell - 2);
+      }
+    }
+
+    return { ox: ox, oy: oy, cell: cell };
+  }
+
+  function drawPreview(canvas, g, win){
+    var f = fit(canvas);
+    if (!f) return;
+    var ctx = f.ctx;
+
+    var pad = 10;
+    var cw = (f.w - 2 * pad) / g.ww;
+    var ch = (f.h - 2 * pad) / g.wh;
+    var c = Math.min(cw, ch);
+    var ox = (f.w - c * g.ww) / 2;
+    var oy = (f.h - c * g.wh) / 2;
+
+    for (var di = 0; di < g.wh; di++) {
+      for (var dj = 0; dj < g.ww; dj++) {
+        var v = g.cells[(win.i + di) % g.rows][(win.j + dj) % g.cols];
+        ctx.fillStyle = colorOf(g, v);
+        ctx.fillRect(ox + dj * c, oy + di * c, c, c);
+      }
+    }
+
+    ctx.strokeStyle = COL.grid;
+    ctx.lineWidth = 1;
+    for (var di2 = 0; di2 < g.wh; di2++) {
+      for (var dj2 = 0; dj2 < g.ww; dj2++) {
+        ctx.strokeRect(ox + dj2 * c, oy + di2 * c, c, c);
+      }
+    }
+  }
+
+  function setup(cfg){
+    var g = cfg.g;
+    var view = {
+      g: g,
+      torus: document.getElementById(cfg.torus),
+      preview: document.getElementById(cfg.preview),
+      input: document.getElementById(cfg.input),
+      state: document.getElementById(cfg.state),
+      win: { i: 0, j: 0 },
+      geo: null
+    };
+
+    view.apply = function(){
+      var enc = encodeAt(g, view.win.i, view.win.j);
+      view.state.textContent = '编码 ' + enc + ' · (' + (view.win.i + 1) + ', ' + (view.win.j + 1) + ')';
+      if (view.input.value !== String(enc)) view.input.value = String(enc);
+      view.geo = drawTorus(view.torus, g, view.win);
+      drawPreview(view.preview, g, view.win);
+    };
+
+    view.torus.addEventListener('click', function(e){
+      if (!view.geo) return;
+      var rect = view.torus.getBoundingClientRect();
+      var x = e.clientX - rect.left, y = e.clientY - rect.top;
+      var c = Math.floor((x - view.geo.ox) / view.geo.cell);
+      var r = Math.floor((y - view.geo.oy) / view.geo.cell);
+      if (r < 0 || r >= g.rows || c < 0 || c >= g.cols) return;
+      view.win = { i: r, j: c };
+      view.apply();
+    });
+
+    view.input.addEventListener('change', function(){
+      var v = parseInt(view.input.value, 10);
+      var found = isNaN(v) ? null : findWindow(g, v);
+      if (found) view.win = found;
+      view.apply();
+    });
+
+    var col = view.torus.closest('.col');
+    var box = col ? col.querySelector('details.probe') : null;
+    if (box) {
+      box.addEventListener('toggle', function(){ if (box.open) view.apply(); });
+    }
+
+    view.apply();
+    return view;
+  }
+
+  var VIEWS = [];
+
+  fetch('./debruijn-data.json', { cache: 'no-cache' })
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d){
+      var ids = [
+        { key: 'd4', torus: 't4', preview: 'w4', input: 'i4', state: 's4', mx: 'm4' },
+        { key: 'd8', torus: 't8', preview: 'w8', input: 'i8', state: 's8', mx: 'm8' },
+        { key: 'd9', torus: 't9', preview: 'w9', input: 'i9', state: 's9', mx: 'm9' }
+      ];
+
+      ids.forEach(function(cfg){
+        var g = d[cfg.key];
+        var el = document.getElementById(cfg.mx);
+        if (el) el.textContent = g.cells.map(function(row){ return row.join(' '); }).join('\n');
+        VIEWS.push(setup({ g: g, torus: cfg.torus, preview: cfg.preview, input: cfg.input, state: cfg.state }));
+      });
+
+      var t;
+      window.addEventListener('resize', function(){
+        clearTimeout(t);
+        t = setTimeout(function(){ VIEWS.forEach(function(v){ v.apply(); }); }, 120);
+      });
+    })
+    .catch(function(){
+      var fig = document.querySelector('.fig');
+      if (fig) fig.insertAdjacentHTML('beforeend', '<p style="font-family:ui-monospace;font-size:.7rem;color:var(--ink-3);padding:.5rem">矩阵数据未能加载</p>');
+    });
+
+  window.dsttyThemeChanged = function(){
+    VIEWS.forEach(function(v){ v.apply(); });
+  };
+})();
+</script>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="切换主题">☀</button>
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeBtn');
+  var KEY = 'dstty-theme';
+  function paint(t){
+    root.setAttribute('data-theme', t);
+    if (btn) {
+      btn.textContent = t === 'dark' ? '☀' : '☾';
+      btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
+    }
+    if (typeof window.dsttyThemeChanged === 'function') window.dsttyThemeChanged();
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  paint(saved || 'dark');
+  if (btn) btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
