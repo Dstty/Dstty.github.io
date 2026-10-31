@@ -151,6 +151,11 @@
     margin:0;font-family:var(--serif);font-size:1.1rem;line-height:1.2;
     font-variant-numeric:tabular-nums;
   }
+  .pct{
+    display:block;margin-top:.15rem;
+    font-family:var(--mono);font-size:.66rem;font-weight:400;
+    letter-spacing:.02em;color:var(--ink-3);
+  }
 
   .canvaswrap{padding:.7rem;background:rgba(255,255,255,.28)}
   #tile{
@@ -465,6 +470,7 @@ C = {(h, 0)}</pre>
     return d === 1 ? String(n) : n + '/' + d;
   }
   function mod(v, m){ return ((v % m) + m) % m; }
+  function pct(num, den){ return den ? (num / den * 100).toFixed(2) + '%' : '—'; }
 
   function buildTable(){
     var frag = document.createDocumentFragment();
@@ -475,8 +481,8 @@ C = {(h, 0)}</pre>
       tr.dataset.n = String(n);
       tr.innerHTML =
         '<td class="num">' + n + '</td>' +
-        '<td class="num">' + frac(r.B, total) + '</td>' +
-        '<td class="num">' + frac(total - r.B, total) + '</td>' +
+        '<td class="num">' + frac(r.B, total) + '<span class="pct">' + pct(r.B, total) + '</span></td>' +
+        '<td class="num">' + frac(total - r.B, total) + '<span class="pct">' + pct(total - r.B, total) + '</span></td>' +
         '<td class="num">' + r.H + '×' + r.W + '</td>' +
         '<td class="num">' + r.s + '</td>' +
         '<td class="num">' + r.B + '</td>';
@@ -494,8 +500,8 @@ C = {(h, 0)}</pre>
 
   function updateStats(rec){
     var total = rec.H * rec.W;
-    st.delta.textContent = frac(rec.B, total);
-    st.rho.textContent = frac(total - rec.B, total);
+    st.delta.innerHTML = frac(rec.B, total) + '<span class="pct">' + pct(rec.B, total) + '</span>';
+    st.rho.innerHTML = frac(total - rec.B, total) + '<span class="pct">' + pct(total - rec.B, total) + '</span>';
     st.cell.textContent = rec.H + '×' + rec.W;
     st.shear.textContent = String(rec.s);
     st.count.textContent = String(rec.B);
