@@ -121,7 +121,9 @@
   .probe canvas{
     width:96px;height:96px;flex:0 0 96px;display:block;
     border:1px solid var(--line);border-radius:2px;background:var(--paper-2);
+    cursor:pointer;transition:border-color .2s ease;
   }
+  .probe canvas:hover{border-color:var(--ink-3)}
   .probe__side{display:flex;flex-direction:column;gap:.3rem;min-width:0}
   .probe__lab{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
   .probe__inp{
@@ -206,7 +208,7 @@
           <div class="probe__side">
             <label class="probe__lab" for="i4">编码</label>
             <input class="probe__inp" id="i4" type="number" min="0" max="15" value="0" inputmode="numeric">
-            <p class="probe__tip">点矩阵选窗口左上角，或输入 0–15 的编码反查位置</p>
+            <p class="probe__tip">点小窗口里的一格切换颜色，大图会框出对应图案的位置</p>
           </div>
         </div>
       </details>
@@ -233,7 +235,7 @@
           <div class="probe__side">
             <label class="probe__lab" for="i8">编码</label>
             <input class="probe__inp" id="i8" type="number" min="0" max="63" value="0" inputmode="numeric">
-            <p class="probe__tip">窗口 3 行 × 2 列，编码范围 0–63</p>
+            <p class="probe__tip">窗口 3 行 × 2 列，点小格切换颜色，编码范围 0–63</p>
           </div>
         </div>
       </details>
@@ -260,7 +262,7 @@
           <div class="probe__side">
             <label class="probe__lab" for="i9">编码</label>
             <input class="probe__inp" id="i9" type="number" min="0" max="80" value="0" inputmode="numeric">
-            <p class="probe__tip">三进制编码 27a + 9b + 3c + d，范围 0–80</p>
+            <p class="probe__tip">点小格在三色间循环，编码 27a + 9b + 3c + d，范围 0–80</p>
           </div>
         </div>
       </details>
@@ -291,7 +293,7 @@
   </section>
 
   <footer class="foot">
-    <p>图中点击任意格子会把窗口左上角移到那里；窗口跨过边界时会绕回对侧，高亮也会分成两块。</p>
+    <p>小窗口承担搜索框的作用：点它里面的一格会切换颜色，得到新编码，大图随即框出该图案所在的窗口。反过来也成立 —— 点大图任意格子会把窗口移到那里，或直接在输入框写编码定位。</p>
   </footer>
 
 </main>
@@ -438,6 +440,8 @@
         ctx.strokeRect(ox + dj2 * c, oy + di2 * c, c, c);
       }
     }
+
+    return { ox: ox, oy: oy, c: c };
   }
 
   function setup(cfg){
@@ -457,7 +461,7 @@
       view.state.textContent = '编码 ' + enc + ' · (' + (view.win.i + 1) + ', ' + (view.win.j + 1) + ')';
       if (view.input.value !== String(enc)) view.input.value = String(enc);
       view.geo = drawTorus(view.torus, g, view.win);
-      drawPreview(view.preview, g, view.win);
+      view.pgeo = drawPreview(view.preview, g, view.win);
     };
 
     view.torus.addEventListener('click', function(e){
@@ -469,6 +473,26 @@
       if (r < 0 || r >= g.rows || c < 0 || c >= g.cols) return;
       view.win = { i: r, j: c };
       view.apply();
+    });
+
+    // 点小窗口里的一格切换颜色，再按编码定位；和道路阵列页是同一个方向
+    view.preview.addEventListener('click', function(e){
+      if (!view.pgeo) return;
+      var rect = view.preview.getBoundingClientRect();
+      var x = e.clientX - rect.left, y = e.clientY - rect.top;
+      var dj = Math.floor((x - view.pgeo.ox) / view.pgeo.c);
+      var di = Math.floor((y - view.pgeo.oy) / view.pgeo.c);
+      if (di < 0 || di >= g.wh || dj < 0 || dj >= g.ww) return;
+
+      var base = encodeAt(g, view.win.i, view.win.j);
+      var cur = g.cells[(view.win.i + di) % g.rows][(view.win.j + dj) % g.cols];
+      var next = (cur + 1) % g.k;
+      var weight = Math.pow(g.k, g.wh * g.ww - 1 - (di * g.ww + dj));
+      var found = findWindow(g, base + (next - cur) * weight);
+      if (found) {
+        view.win = found;
+        view.apply();
+      }
     });
 
     view.input.addEventListener('change', function(){
