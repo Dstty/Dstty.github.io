@@ -1,0 +1,75 @@
+.sl-page{
+  max-width:var(--wide);
+  margin:0 auto;
+  padding:var(--pad) var(--pad) 4.5rem;
+}
+.sl-page nav{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--sans);font-size:.86rem;color:var(--ink-2);
+  padding-bottom:1.1rem;border-bottom:1px solid var(--line);
+}
+.sl-page nav a{color:var(--ink-2);text-decoration:none}
+.sl-page nav a:hover{color:var(--ink)}
+.sl-head{padding:2.1rem 0 .4rem;max-width:44rem}
+.sl-eyebrow{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.76rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);
+}
+.sl-head h1{
+  margin:0;font-family:var(--serif);font-weight:600;
+  font-size:clamp(2rem,5.2vw,3.2rem);line-height:1.08;letter-spacing:-.02em;
+}
+.sl-intro{margin:1rem 0 0;font-size:.98rem;line-height:1.8;color:var(--ink-2)}
+.sl-intro b{color:var(--ink);font-weight:600}
+
+.sl-grid{
+  display:grid;gap:var(--gap);
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  padding:1.6rem 0 .4rem;
+}
+.sl-card{
+  border:1px solid var(--line);border-radius:2px;
+  background:var(--fill);padding:.7rem .7rem .55rem;
+  transition:border-color .2s ease,background-color .2s ease;
+}
+.sl-card:hover{border-color:var(--line-strong);background:var(--fill-2)}
+.sl-card svg{display:block;width:100%;height:auto}
+
+/* 棋盘固定为纸面，黑格在明暗两套主题下都读作“黑” */
+.sl-bg{fill:#f7f3e9}
+.sl-black{fill:#17120e}
+.sl-grid-line{stroke:rgba(20,16,13,.15);stroke-width:1;vector-effect:non-scaling-stroke}
+.sl-outline{fill:none;stroke:rgba(20,16,13,.24);stroke-width:1;vector-effect:non-scaling-stroke}
+
+.sl-cap{
+  display:flex;justify-content:space-between;align-items:baseline;gap:.4rem;
+  margin-top:.55rem;font-family:var(--mono);font-size:.76rem;color:var(--ink-2);
+}
+.sl-cap b{font-family:var(--serif);font-size:.95rem;font-weight:600;color:var(--ink)}
+
+.sl-notes{padding-top:1.6rem;border-top:1px solid var(--line);margin-top:1.2rem}
+.sl-notes h2{
+  margin:0 0 1rem;font-family:var(--serif);font-weight:600;
+  font-size:clamp(1.3rem,2.6vw,1.7rem);
+}
+.sl-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.sl-table th,.sl-table td{
+  text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);
+}
+.sl-table th{font-weight:600;color:var(--ink-2);font-size:.8rem;letter-spacing:.04em}
+.sl-table td:first-child{font-family:var(--mono);color:var(--ink)}
+.sl-caveat{margin:1rem 0 0;font-size:.84rem;line-height:1.7;color:var(--ink-3)}
+.sl-notes details{margin-top:1.1rem;font-size:.88rem;color:var(--ink-2)}
+.sl-notes summary{cursor:pointer;color:var(--ink-2)}
+.sl-notes summary:hover{color:var(--ink)}
+#sl-coords p{margin:.45rem 0;font-family:var(--mono);font-size:.8rem;line-height:1.7}
+#sl-coords b{font-family:var(--serif);font-size:.9rem}
+.sl-foot{
+  margin-top:2rem;padding-top:1.1rem;border-top:1px solid var(--line);
+  font-size:.84rem;color:var(--ink-3);
+}
+.sl-foot a{color:var(--accent);text-decoration:none}
+.sl-foot a:hover{text-decoration:underline}
+@media (max-width:520px){
+  .sl-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+}
