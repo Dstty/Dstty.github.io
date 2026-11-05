@@ -22,54 +22,109 @@
 .sl-intro{margin:1rem 0 0;font-size:.98rem;line-height:1.8;color:var(--ink-2)}
 .sl-intro b{color:var(--ink);font-weight:600}
 
-.sl-grid{
-  display:grid;gap:var(--gap);
-  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-  padding:1.6rem 0 .4rem;
+/* ---------- puzzle ---------- */
+.puzzle{margin-top:1.8rem}
+.size-tabs{display:flex;flex-wrap:wrap;gap:.4rem}
+.size-tabs button{
+  display:inline-flex;align-items:baseline;gap:.35rem;
+  border:1px solid var(--line);border-radius:2px;background:transparent;
+  padding:.38rem .58rem;color:var(--ink-2);cursor:pointer;
+  font-family:var(--mono);font-size:.78rem;line-height:1;
+  transition:border-color .18s ease,color .18s ease,background-color .18s ease;
 }
-.sl-card{
-  border:1px solid var(--line);border-radius:2px;
-  background:var(--fill);padding:.7rem .7rem .55rem;
-  transition:border-color .2s ease,background-color .2s ease;
+.size-tabs button small{font-size:.66rem;color:var(--ink-3);font-family:var(--sans)}
+.size-tabs button:hover{border-color:var(--line-strong);color:var(--ink)}
+.size-tabs button[aria-pressed="true"]{
+  border-color:var(--accent);color:var(--ink);background:var(--accent-soft);
 }
-.sl-card:hover{border-color:var(--line-strong);background:var(--fill-2)}
-.sl-card svg{display:block;width:100%;height:auto}
+.size-tabs button[aria-pressed="true"] small{color:var(--accent)}
+.size-tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* 棋盘固定为纸面，黑格在明暗两套主题下都读作“黑” */
-.sl-bg{fill:#f7f3e9}
-.sl-black{fill:#17120e}
-.sl-grid-line{stroke:rgba(20,16,13,.15);stroke-width:1;vector-effect:non-scaling-stroke}
-.sl-outline{fill:none;stroke:rgba(20,16,13,.24);stroke-width:1;vector-effect:non-scaling-stroke}
-
-.sl-cap{
-  display:flex;justify-content:space-between;align-items:baseline;gap:.4rem;
-  margin-top:.55rem;font-family:var(--mono);font-size:.76rem;color:var(--ink-2);
+.puzzle-heading{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;
+  margin:1.3rem 0 .8rem;
 }
-.sl-cap b{font-family:var(--serif);font-size:.95rem;font-weight:600;color:var(--ink)}
+.puzzle-heading h2{
+  margin:0;font-family:var(--serif);font-weight:600;
+  font-size:clamp(1.15rem,2.4vw,1.5rem);
+}
+.puzzle-heading p{margin:.35rem 0 0;font-size:.8rem;color:var(--ink-3);font-family:var(--mono)}
+.legend{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--ink-3)}
+.legend i{display:inline-block;width:.9rem;height:.9rem;border-radius:1px;margin-left:.5rem}
+.legend .wall-key{
+  border:1px solid var(--line-strong);
+  background-image:repeating-linear-gradient(45deg,var(--ink-3) 0 1px,transparent 1px 3px);
+}
+.legend .line-key{background:var(--cv-blue);height:.22rem;border-radius:1px}
 
-.sl-notes{padding-top:1.6rem;border-top:1px solid var(--line);margin-top:1.2rem}
+.board-wrap{
+  max-width:560px;margin:0 auto;aspect-ratio:1/1;
+  border:1px solid var(--line);background:var(--cv-bg);
+}
+#board{display:block;width:100%;height:100%;touch-action:manipulation}
+.board-bg{fill:var(--cv-bg)}
+.grid{stroke:var(--cv-grid-soft);stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none}
+.wall-fill{fill:var(--paper-2)}
+.wall-stroke{stroke:var(--ink-3);stroke-width:2;vector-effect:non-scaling-stroke}
+.wall{fill:url(#wall-hatch);stroke:var(--line-strong);stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none}
+.edge{stroke-linecap:round;fill:none;pointer-events:none}
+.edge.drawn{stroke:var(--cv-blue)}
+.edge.revealed{stroke:var(--cv-mark)}
+.hit{stroke:transparent;cursor:pointer;pointer-events:stroke}
+.hit:hover{stroke:var(--hover)}
+.hit:focus-visible{stroke:var(--accent-soft);outline:none}
+.cross{stroke:var(--cv-mark);fill:none;stroke-linecap:round;pointer-events:none}
+
+.mode-toolbar{display:flex;gap:.35rem;justify-content:center;margin:1rem 0 .55rem}
+.toolbar{display:flex;gap:.45rem;justify-content:center;flex-wrap:wrap}
+.mode-toolbar button,.toolbar button{
+  border:1px solid var(--line);border-radius:2px;background:transparent;
+  color:var(--ink-2);padding:.45rem .8rem;cursor:pointer;
+  font-family:var(--sans);font-size:.82rem;line-height:1;
+  transition:border-color .18s ease,color .18s ease,background-color .18s ease;
+}
+.mode-toolbar button:hover,.toolbar button:hover{border-color:var(--line-strong);color:var(--ink)}
+.mode-toolbar button[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.toolbar button:disabled{opacity:.4;cursor:default}
+.toolbar button:focus-visible,.mode-toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+#status{
+  margin:1rem auto 0;text-align:center;font-size:.86rem;line-height:1.6;
+  color:var(--ink-2);min-height:1.4em;max-width:38rem;
+}
+#status.success{color:var(--accent)}
+.help{
+  margin:.7rem auto 0;max-width:38rem;text-align:center;
+  font-size:.78rem;line-height:1.75;color:var(--ink-3);
+}
+
+/* ---------- notes ---------- */
+.sl-notes{padding-top:1.6rem;border-top:1px solid var(--line);margin-top:2.2rem}
 .sl-notes h2{
   margin:0 0 1rem;font-family:var(--serif);font-weight:600;
   font-size:clamp(1.3rem,2.6vw,1.7rem);
 }
 .sl-table{width:100%;border-collapse:collapse;font-size:.88rem}
-.sl-table th,.sl-table td{
-  text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);
-}
+.sl-table th,.sl-table td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line)}
 .sl-table th{font-weight:600;color:var(--ink-2);font-size:.8rem;letter-spacing:.04em}
 .sl-table td:first-child{font-family:var(--mono);color:var(--ink)}
 .sl-caveat{margin:1rem 0 0;font-size:.84rem;line-height:1.7;color:var(--ink-3)}
 .sl-notes details{margin-top:1.1rem;font-size:.88rem;color:var(--ink-2)}
 .sl-notes summary{cursor:pointer;color:var(--ink-2)}
 .sl-notes summary:hover{color:var(--ink)}
-#sl-coords p{margin:.45rem 0;font-family:var(--mono);font-size:.8rem;line-height:1.7}
-#sl-coords b{font-family:var(--serif);font-size:.9rem}
+#coordinates{
+  display:flex;flex-wrap:wrap;gap:.2rem .9rem;
+  margin:.6rem 0 0;padding-left:1.2rem;
+  font-family:var(--mono);font-size:.8rem;line-height:1.8;
+}
 .sl-foot{
   margin-top:2rem;padding-top:1.1rem;border-top:1px solid var(--line);
   font-size:.84rem;color:var(--ink-3);
 }
 .sl-foot a{color:var(--accent);text-decoration:none}
 .sl-foot a:hover{text-decoration:underline}
-@media (max-width:520px){
-  .sl-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+
+@media (max-width:560px){
+  .puzzle-heading{align-items:flex-start;flex-direction:column;gap:.4rem}
+  .board-wrap{max-width:none}
 }
