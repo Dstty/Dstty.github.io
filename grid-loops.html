@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>点阵回路 · 少量线段，唯一解</title>
-<meta name="description" content="4×4、6×6、8×8、10×10 点阵的唯一回路谜题。从少量预设线段出发，让每个点恰好经过一次。">
+<meta name="description" content="4×4、6×6、8×8、10×10、12×12 点阵的唯一回路谜题。从少量预设线段出发，让每个点恰好经过一次。">
 <link rel="stylesheet" href="./theme.css"><link rel="stylesheet" href="./grid-loops.css">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('site-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
-<script defer src="./grid-loops-data.js"></script><script defer src="./grid-loops.js?v=activity-20261105"></script>
+<script defer src="./grid-loops-data.js?v=12-17"></script><script defer src="./grid-loops.js?v=activity-20261105"></script>
 </head>
 <body>
 <main class="loop-page">
 <nav><a href="./index.html">← 返回首页</a><span>组合 / 回路</span></nav>
 <header><p class="eyebrow">少量线段，唯一解</p><h1>点阵回路</h1><p class="intro">只连接上下左右相邻的点，让全部点恰好经过一次，最后回到起点。红色线段已经给定，剩下的路由你来补全。</p></header>
 <section class="puzzle" aria-label="点阵回路谜题">
-<div class="size-tabs" role="group" aria-label="选择点阵尺寸"><button type="button" data-size="4" aria-pressed="true">4 × 4 <small>2 条提示</small></button><button type="button" data-size="6" aria-pressed="false">6 × 6 <small>5 条提示</small></button><button type="button" data-size="8" aria-pressed="false">8 × 8 <small>7 条提示</small></button><button type="button" data-size="10" aria-pressed="false">10 × 10 <small>10 条提示</small></button></div>
+<div class="size-tabs" role="group" aria-label="选择点阵尺寸"><button type="button" data-size="4" aria-pressed="true">4 × 4 <small>2 条提示</small></button><button type="button" data-size="6" aria-pressed="false">6 × 6 <small>5 条提示</small></button><button type="button" data-size="8" aria-pressed="false">8 × 8 <small>7 条提示</small></button><button type="button" data-size="10" aria-pressed="false">10 × 10 <small>10 条提示</small></button><button type="button" data-size="12" aria-pressed="false">12 × 12 <small id="clue-count-12">17 条提示</small></button></div>
 <div class="puzzle-heading"><div><h2 id="board-title">4 × 4 点阵</h2><p id="record-note"></p></div><span class="legend"><i class="given-key"></i>预设 <i class="drawn-key"></i>你的连线</span></div>
 <div class="board-wrap"><svg id="board" viewBox="0 0 600 600" role="group" aria-label="点阵，点击相邻点之间的空隙添加或删除线段"></svg></div>
 <div class="toolbar"><button id="undo" type="button">撤销</button><button id="reset" type="button">重新开始</button><button id="solution" type="button" aria-pressed="false">查看唯一解</button></div>
 <p id="status" role="status" aria-live="polite"></p><p class="help">点击相邻两点之间的空隙连线，再点一次可删除。键盘可用 Tab 选中线段，按回车或空格切换。红色预设线段不能删除。</p>
 </section>
-<section class="notes"><h2>多少条提示，才能只剩一条路？</h2><p>这四组预设线段都经过完整搜索和独立约束求解器复核：满足提示、遍历全部点的完整回路恰好一个。回路的起点与行进方向不区分。</p>
-<div class="table-wrap"><table><thead><tr><th>点阵</th><th>预设线段</th><th>目前知道什么</th></tr></thead><tbody><tr><td>4 × 4</td><td>2</td><td>已穷举，确认最少为 2 条</td></tr><tr><td>6 × 6</td><td>5</td><td>5 条足够，未确定全局最少</td></tr><tr><td>8 × 8</td><td>7</td><td>7 条足够，未确定全局最少</td></tr><tr><td>10 × 10</td><td>10</td><td>10 条足够，未确定全局最少</td></tr></tbody></table></div>
+<section class="notes"><h2>多少条提示，才能只剩一条路？</h2><p>这些预设线段都经过完整搜索和独立约束求解器复核：满足提示、遍历全部点的完整回路恰好一个。回路的起点与行进方向不区分。</p>
+<div class="table-wrap"><table><thead><tr><th>点阵</th><th>预设线段</th><th>目前知道什么</th></tr></thead><tbody><tr><td>4 × 4</td><td>2</td><td>已穷举，确认最少为 2 条</td></tr><tr><td>6 × 6</td><td>5</td><td>5 条足够，未确定全局最少</td></tr><tr><td>8 × 8</td><td>7</td><td>7 条足够，未确定全局最少</td></tr><tr><td>10 × 10</td><td>10</td><td>10 条足够，未确定全局最少</td></tr><tr><td>12 × 12</td><td id="record-count-12">17</td><td>已验证足够，未确定全局最少</td></tr></tbody></table></div>
 <p>这里“一条”指相邻两点之间的一条单位线段。跨过三个点的连续直线算两条。每个点都应恰好接上两条线，而且所有点必须属于同一个回路；几个各自闭合的小圈不算完成。</p><details><summary>查看当前谜题的预设坐标</summary><p>坐标按（行，列）表示，从左上角起编号。</p><ol id="coordinates"></ol></details>
 </section><footer>从确定的线段出发，找回唯一的一圈。</footer>
 </main><button class="theme-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☀</button>
