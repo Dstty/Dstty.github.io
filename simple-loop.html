@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>黑格回路 · 最少涂黑几格</title>
-<meta name="description" content="在 n×n 格子里最少涂黑几个格子，剩下的白格才有唯一的一条回路？n=2 到 12 的一组题面。">
+<meta name="description" content="在 n×n 格子里涂黑若干格，补出唯一的一条回路。n=2 到 12 的可交互题面。">
 <link rel="stylesheet" href="./theme.css">
 <link rel="stylesheet" href="./simple-loop.css">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('site-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
@@ -17,10 +17,28 @@
 <header class="sl-head">
 <p class="sl-eyebrow">最少涂黑几格</p>
 <h1>黑格回路</h1>
-<p class="sl-intro">在 n×n 的格子里涂黑若干格，要求剩下的每个白格都被<b>同一条闭合回路</b>恰好经过一次，而且这样的回路只有一条。黑格越少，约束越弱；少到某个数，解就不再唯一。下面是 n=2 到 12 的一组题面，只有黑格，没有画好的线。</p>
+<p class="sl-intro">每个 n×n 格子里涂黑若干格，要求剩下的每个白格都被<b>同一条闭合回路</b>恰好经过一次，而且解唯一。黑格越少约束越弱，少到某个数解就不再唯一。下面是可以直接画的题面：<b>n=2 到 12</b>。</p>
 </header>
 
-<section class="sl-grid" id="boards" aria-label="各尺寸的题面"></section>
+<section class="puzzle" aria-label="黑格回路谜题">
+<div class="size-tabs" id="sizes" role="group" aria-label="选择点阵尺寸"></div>
+<div class="puzzle-heading">
+  <div><h2 id="board-title">11 × 11 点阵</h2><p id="record-note"></p></div>
+  <span class="legend"><i class="wall-key"></i>黑格<i class="line-key"></i>你的连线</span>
+</div>
+<div class="board-wrap"><svg id="board" viewBox="0 0 1000 1000" role="group" aria-label="点阵，点击相邻两格之间的空隙添加或删除线段"></svg></div>
+<div class="mode-toolbar" role="group" aria-label="操作模式">
+  <button type="button" data-mode="line" aria-pressed="true">连线模式</button>
+  <button type="button" data-mode="cross" aria-pressed="false">点叉模式</button>
+</div>
+<div class="toolbar">
+  <button id="undo" type="button">撤销</button>
+  <button id="reset" type="button">重新开始</button>
+  <button id="solution" type="button" aria-pressed="false">查看唯一解</button>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+<p class="help">点击相邻两个白格之间的空隙添加或删除线段。每个白格恰好接两条线、所有白格属于同一个回路、黑格不经过，就算完成。叉号表示“这里没有线”。查看答案后红色线段即唯一解。</p>
+</section>
 
 <section class="sl-notes">
 <h2>这些题面</h2>
@@ -43,10 +61,10 @@
 </table>
 </div>
 <p class="sl-caveat">回路在棋盘染色上黑白交替，所以白格中两种颜色必须一样多：偶数 n 时黑格数必须是偶数，奇数 n 时必须是奇数。这也是为什么 9×9 要 7 个、10×10 反而只要 6 个。</p>
-<details><summary>黑格坐标（行, 列；从 0 开始）</summary><div id="sl-coords"></div></details>
+<details><summary>黑格坐标（行, 列；从 0 开始）</summary><ol id="coordinates"></ol></details>
 </section>
 
-<footer class="sl-foot">想自己画线？去 <a href="./grid-loops.html">点阵回路</a>，那里是从给定的红色线段补全唯一回路。</footer>
+<footer class="sl-foot">另一个玩法：去 <a href="./grid-loops.html">点阵回路</a>，从给定的红色线段补全唯一回路。</footer>
 </main>
 
 <button class="theme-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☀</button>
