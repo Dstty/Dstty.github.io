@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>黑格回路 · 最少涂黑几格</title>
+<meta name="description" content="在 n×n 格子里最少涂黑几个格子，剩下的白格才有唯一的一条回路？n=2 到 12 的一组题面。">
+<link rel="stylesheet" href="./theme.css">
+<link rel="stylesheet" href="./simple-loop.css">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('site-theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}</script>
+<script defer src="./simple-loop-data.js"></script>
+<script defer src="./simple-loop.js"></script>
+</head>
+<body>
+<main class="sl-page">
+<nav><a href="./index.html">← 返回首页</a><span>组合 / 回路</span></nav>
+
+<header class="sl-head">
+<p class="sl-eyebrow">最少涂黑几格</p>
+<h1>黑格回路</h1>
+<p class="sl-intro">在 n×n 的格子里涂黑若干格，要求剩下的每个白格都被<b>同一条闭合回路</b>恰好经过一次，而且这样的回路只有一条。黑格越少，约束越弱；少到某个数，解就不再唯一。下面是 n=2 到 12 的一组题面，只有黑格，没有画好的线。</p>
+</header>
+
+<section class="sl-grid" id="boards" aria-label="各尺寸的题面"></section>
+
+<section class="sl-notes">
+<h2>这些题面</h2>
+<div class="table-wrap">
+<table class="sl-table">
+<thead><tr><th>点阵</th><th>黑格</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>2 × 2</td><td>0</td><td>四个点自己成圈，唯一</td></tr>
+<tr><td>3 × 3</td><td>1</td><td>已确认最少</td></tr>
+<tr><td>4 × 4</td><td>2</td><td>已确认最少</td></tr>
+<tr><td>5 × 5</td><td>3</td><td>已确认最少</td></tr>
+<tr><td>6 × 6</td><td>4</td><td>已确认最少</td></tr>
+<tr><td>7 × 7</td><td>5</td><td>已确认最少</td></tr>
+<tr><td>8 × 8</td><td>4</td><td>已确认最少</td></tr>
+<tr><td>9 × 9</td><td>7</td><td>已确认最少</td></tr>
+<tr><td>10 × 10</td><td>6</td><td>已确认最少</td></tr>
+<tr><td>11 × 11</td><td>7</td><td>构造；是否最少尚未确定</td></tr>
+<tr><td>12 × 12</td><td>6</td><td>构造；是否最少尚未确定</td></tr>
+</tbody>
+</table>
+</div>
+<p class="sl-caveat">回路在棋盘染色上黑白交替，所以白格中两种颜色必须一样多：偶数 n 时黑格数必须是偶数，奇数 n 时必须是奇数。这也是为什么 9×9 要 7 个、10×10 反而只要 6 个。</p>
+<details><summary>黑格坐标（行, 列；从 0 开始）</summary><div id="sl-coords"></div></details>
+</section>
+
+<footer class="sl-foot">想自己画线？去 <a href="./grid-loops.html">点阵回路</a>，那里是从给定的红色线段补全唯一回路。</footer>
+</main>
+
+<button class="theme-btn" id="themeBtn" type="button" aria-label="切换明暗主题">☀</button>
+<script>
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeBtn');
+  var KEY = 'site-theme';
+  function paint(t){
+    root.setAttribute('data-theme', t);
+    btn.textContent = t === 'dark' ? '☀' : '☾';
+    btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  paint(saved || 'dark');
+  btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    paint(next);
+  });
+})();
+</script>
+</body>
+</html>
