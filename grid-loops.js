@@ -42,7 +42,7 @@ function choose(size){n=size;data=window.GRID_LOOP_PUZZLES[n];fixed=new Set(data
 for(const b of document.querySelectorAll('[data-size]'))b.addEventListener('click',()=>choose(Number(b.dataset.size)));
 $('undo').addEventListener('click',()=>{if(history.length){selected=history.pop();render();}});
 $('reset').addEventListener('click',()=>{history.push(new Set(selected));selected.clear();render();});
-$('solution').addEventListener('click',()=>{reveal=!reveal;render();});
+$('solution').addEventListener('click',()=>{window.alert('请在活动结束后查看答案');});
 $('themeBtn').addEventListener('click',()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('site-theme',t);}catch(e){}$('themeBtn').textContent=t==='dark'?'☀':'☾';});
 $('themeBtn').textContent=document.documentElement.dataset.theme==='dark'?'☀':'☾';choose(4);
 })();
