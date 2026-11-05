@@ -46,7 +46,7 @@ for(const b of document.querySelectorAll('[data-size]'))b.addEventListener('clic
 for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>{mode=b.dataset.mode;for(const button of document.querySelectorAll('[data-mode]'))button.setAttribute('aria-pressed',String(button.dataset.mode===mode));});
 $('undo').addEventListener('click',()=>{if(history.length){const prev=history.pop();selected=prev.selected;excluded=prev.excluded;render();}});
 $('reset').addEventListener('click',()=>{snapshot();selected.clear();excluded.clear();render();});
-$('solution').addEventListener('click',()=>{window.alert('请在活动结束后查看答案');});
+$('solution').addEventListener('click',()=>{reveal=!reveal;render();});
 $('themeBtn').addEventListener('click',()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('site-theme',t);}catch(e){}$('themeBtn').textContent=t==='dark'?'☀':'☾';});
 $('themeBtn').textContent=document.documentElement.dataset.theme==='dark'?'☀':'☾';choose(4);
 })();
