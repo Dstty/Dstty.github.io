@@ -29,7 +29,7 @@ function render(focusEdge){
  for(let e=0;e<data.edges.length;e++)fragment.append(line(e,'grid-guide'));
  const visible=reveal?new Set(data.cycle):new Set([...fixed,...selected]);
  for(const e of visible)fragment.append(line(e,`edge ${fixed.has(e)?'given':reveal?'revealed':'drawn'}`));
- if(!reveal)for(const e of excluded){const [a,b]=data.edges[e],[ax,ay]=xy(a),[bx,by]=xy(b),x=(ax+bx)/2,y=(ay+by)/2,r=4;fragment.append(svg('path',{d:`M${x-r},${y-r}L${x+r},${y+r}M${x-r},${y+r}L${x+r},${y-r}`,class:'no-line-mark'}));}
+ if(!reveal)for(const e of excluded){const [a,b]=data.edges[e],[ax,ay]=xy(a),[bx,by]=xy(b),x=(ax+bx)/2,y=(ay+by)/2,r=6;fragment.append(svg('path',{d:`M${x-r},${y-r}L${x+r},${y+r}M${x-r},${y+r}L${x+r},${y-r}`,class:'no-line-mark',fill:'none',stroke:'var(--cv-ink)','stroke-width':'2','stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
  for(let e=0;e<data.edges.length;e++)if(!fixed.has(e)&&!reveal){const hit=line(e,`edge-hit${selected.has(e)?' selected':''}`);hit.setAttribute('tabindex','0');hit.setAttribute('role','button');hit.setAttribute('aria-label',edgeLabel(e));hit.setAttribute('aria-pressed',String(selected.has(e)));hit.dataset.edge=e;hit.addEventListener('click',()=>toggle(e));hit.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();toggle(e);}});fragment.append(hit);}
  for(let v=0;v<n*n;v++){const [cx,cy]=xy(v);fragment.append(svg('circle',{cx,cy,r:n<=6?4:3.5,class:'point'}));}
  for(let i=0;i<n;i++){for(const [x,y] of [[55+i*490/(n-1),29],[28,59+i*490/(n-1)]]){const t=svg('text',{x,y,'text-anchor':'middle',class:'board-label'});t.textContent=i+1;fragment.append(t);}}
