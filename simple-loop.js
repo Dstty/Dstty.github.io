@@ -4,7 +4,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const data = window.SIMPLE_LOOP || {};
   const order = Object.keys(data).map(Number).sort((a, b) => a - b);
-  const MIN_PROVEN = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  const MIN_PROVEN = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10, 12]);
 
   const board = $('board');
   let n = 11, D, black, cycle, edges, edgeIndex, cell;
