@@ -27,17 +27,13 @@
   <span class="legend"><i class="wall-key"></i>黑格<i class="line-key"></i>你的连线</span>
 </div>
 <div class="board-wrap"><svg id="board" viewBox="0 0 1000 1000" role="group" aria-label="点阵，点击相邻两格之间的空隙添加或删除线段"></svg></div>
-<div class="mode-toolbar" role="group" aria-label="操作模式">
-  <button type="button" data-mode="line" aria-pressed="true">连线模式</button>
-  <button type="button" data-mode="cross" aria-pressed="false">点叉模式</button>
-</div>
 <div class="toolbar">
   <button id="undo" type="button">撤销</button>
   <button id="reset" type="button">重新开始</button>
   <button id="solution" type="button" aria-pressed="false">查看唯一解</button>
 </div>
 <p id="status" role="status" aria-live="polite"></p>
-<p class="help">点击相邻两个白格之间的空隙添加或删除线段。每个白格恰好接两条线、所有白格属于同一个回路、黑格不经过，就算完成。叉号表示“这里没有线”。查看答案后红色线段即唯一解。</p>
+<p class="help">按住左键从一个白格拖到相邻白格即可连线，一路拖过去就是一条路径；从已画的线起拖会改成擦除。单击一条边标叉（右键拖动、手机长按也可以）。十字表示“这里没有线”。每个白格恰好接两条线、所有白格属于同一个回路、黑格不经过，就算完成。</p>
 </section>
 
 <section class="sl-notes">
