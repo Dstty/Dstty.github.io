@@ -3,329 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>首页</title>
+<title>数学与交互实验</title>
+<meta name="description" content="关于序数、格点、分形与逻辑谜题的一组交互实验，以及可以直接使用的中文检索工具。">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='%23a6432b'%3E%3Ccircle cx='3.2' cy='3.2' r='1.6'/%3E%3Ccircle cx='12.8' cy='3.2' r='1.6'/%3E%3Ccircle cx='3.2' cy='12.8' r='1.6'/%3E%3Ccircle cx='12.8' cy='12.8' r='1.6'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cg fill='%23d96b4a'%3E%3Ccircle cx='9' cy='9' r='3'/%3E%3Ccircle cx='23' cy='9' r='3'/%3E%3Ccircle cx='9' cy='23' r='3'/%3E%3Ccircle cx='23' cy='23' r='3'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="./theme.css">
 <script>
-(function(){
-  var t = null;
-  try { t = localStorage.getItem('site-theme'); } catch (e) {}
-  document.documentElement.setAttribute('data-theme', t || 'dark');
-})();
+(function(){var t;try{t=localStorage.getItem('site-theme')}catch(e){}document.documentElement.dataset.theme=t==='light'?'light':'dark'})();
 </script>
 <style>
-  *,*::before,*::after{box-sizing:border-box}
-  body{
-    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
-  }
-
-  .page{
-    max-width:var(--wide);
-    margin:0 auto;
-    padding:0 var(--pad);
-  }
-
-  /* 上下两条结构线，仅作版面边界 */
-  .edge{
-    height:1px;
-    background:var(--line);
-  }
-  .edge--top{margin-top:clamp(1.6rem,4vw,3rem)}
-
-  .stack{
-    display:flex;
-    flex-direction:column;
-    gap:var(--gap);
-    padding:var(--gap) 0;
-  }
-  .row{
-    display:grid;
-    gap:var(--gap);
-  }
-  .row--2{grid-template-columns:1fr 1fr}
-  .row--3{grid-template-columns:repeat(3,1fr)}
-
-  /* 空框：1px 细边 + 四角 L 型刻线 */
-  .frame{
-    --len:11px;
-    position:relative;
-    min-height:9rem;
-    border:1px solid var(--line);
-    border-radius:2px;
-    background-color:var(--fill);
-    background-image:
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner)),
-      linear-gradient(var(--corner),var(--corner));
-    background-repeat:no-repeat;
-    background-size:
-      var(--len) 1px, 1px var(--len),
-      var(--len) 1px, 1px var(--len),
-      var(--len) 1px, 1px var(--len),
-      var(--len) 1px, 1px var(--len);
-    background-position:
-      left top, left top,
-      right top, right top,
-      left bottom, left bottom,
-      right bottom, right bottom;
-  }
-
-  .frame--hero{min-height:clamp(13rem,38vh,24rem)}
-  .row--2 .frame{min-height:clamp(9rem,18vh,13rem)}
-  .row--3 .frame{min-height:clamp(7rem,14vh,10rem)}
-  .frame--wide{min-height:clamp(6rem,10vh,8rem)}
-
-  /* 有内容的框：左缩略图 + 右标题描述，整块可点 */
-  .entry{
-    display:grid;
-    grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
-    align-items:center;
-    gap:clamp(.9rem,2.6vw,2rem);
-    padding:clamp(.9rem,2.2vw,1.5rem);
-    text-decoration:none;color:inherit;
-    transition:border-color .25s ease,background-color .25s ease;
-  }
-  .entry:hover{border-color:var(--line-strong);background-color:var(--fill-2)}
-  .entry__thumb{
-    overflow:hidden;
-    border:1px solid var(--line);border-radius:1px;
-    background:var(--paper-2);
-    aspect-ratio:26/16;
-  }
-  .entry__thumb svg,.entry__thumb img{
-    display:block;width:100%;height:100%;object-fit:cover;
-    transition:transform .6s cubic-bezier(.2,.7,.2,1);
-  }
-  .entry:hover .entry__thumb svg,.entry:hover .entry__thumb img{transform:scale(1.03)}
-  .entry__text{min-width:0}
-  .entry__title{
-    margin:0;
-    font-family:var(--serif);font-weight:600;
-    font-size:clamp(1.6rem,3.4vw,2.4rem);line-height:1.1;letter-spacing:-.02em;
-  }
-  .entry__desc{
-    margin:.7rem 0 0;
-    font-size:.92rem;line-height:1.65;color:var(--ink-2);
-    max-width:34ch;
-  }
-  @media (max-width:700px){
-    .entry{grid-template-columns:1fr;align-items:start}
-  }
-  /* 窄卡片：图在上、文字在下 */
-  .entry--tall{grid-template-columns:1fr;align-items:start}
-  .entry--tall .entry__thumb{aspect-ratio:3/2}
-  .entry--tall .entry__desc{max-width:none}
-  .entry__title--sm{font-size:clamp(1.4rem,2.6vw,1.9rem)}
-
-  .edge--bottom{margin-bottom:clamp(1.6rem,4vw,3rem)}
-
-  /* 入场：轻微上浮 + 渐显 */
-  html.js .frame{opacity:0;transform:translateY(10px)}
-  html.js .frame.is-in{
-    opacity:1;transform:none;
-    transition:opacity .7s cubic-bezier(.2,.75,.2,1) var(--d,0ms),transform .7s cubic-bezier(.2,.75,.2,1) var(--d,0ms);
-  }
-
-  @media (max-width:760px){
-    .row--2,.row--3{grid-template-columns:1fr}
-    .row--2 .frame{min-height:clamp(7rem,14vh,10rem)}
-    .row--3 .frame{min-height:clamp(5.5rem,11vh,8rem)}
-    .frame--hero{min-height:clamp(10rem,30vh,16rem)}
-  }
-  @media (prefers-reduced-motion:reduce){
-    html.js .frame,html.js .frame.is-in{opacity:1;transform:none;transition:none}
-  }
+*,*::before,*::after{box-sizing:border-box}.intro>*,.feature>*,.masthead>*,.card-body,.play>div{min-width:0}img{max-width:100%}.intro{min-width:0}.lead,.desc{overflow-wrap:anywhere}html{scroll-behavior:smooth;scroll-padding-top:2rem}body{font-family:var(--sans)}a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:5px}a{text-underline-offset:4px}.page{width:min(100%,1160px);margin:auto;padding:0 clamp(20px,5vw,64px)}.skip{position:absolute;left:20px;top:-80px;z-index:100;padding:12px;background:var(--paper)}.skip:focus{top:10px}.masthead{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:30px 0;border-bottom:1px solid var(--line)}.brand{text-decoration:none;font-size:14px;letter-spacing:.1em;font-weight:650;display:flex;align-items:center;gap:12px}.mark{display:grid;grid-template-columns:repeat(2,4px);gap:4px}.mark i{width:4px;height:4px;background:var(--accent)}.topnav{display:flex;gap:24px;font-size:13px;color:var(--ink-2)}.topnav a{text-decoration:none}.topnav a:hover{color:var(--accent)}.intro{padding:76px 0 54px;display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}.eyebrow{font:11px var(--mono);letter-spacing:.17em;color:var(--accent);margin:0 0 20px;text-transform:uppercase}h1{font:500 clamp(36px,6vw,64px)/1.2 var(--serif);letter-spacing:-.025em;margin:0}h1 span{color:var(--ink-3)}.lead{max-width:510px;font-size:15px;line-height:1.9;color:var(--ink-2);margin:22px 0 0}.intro-note{font:12px/1.9 var(--mono);color:var(--ink-3);text-align:right;padding-bottom:4px}.jumpnav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}.jumpnav a{padding:9px 16px;border:1px solid var(--line);font-size:12px;text-decoration:none;border-radius:2px;transition:background .2s}.jumpnav a:hover{background:var(--accent-soft);border-color:var(--accent-mid)}.frame{position:relative;border:1px solid var(--line);background:var(--fill);border-radius:2px}.frame::before,.frame::after{content:"";position:absolute;width:10px;height:10px;pointer-events:none;border-color:var(--corner);border-style:solid}.frame::before{top:-1px;left:-1px;border-width:1px 0 0 1px}.frame::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}.feature{display:grid;grid-template-columns:1.15fr 1fr;gap:40px;padding:28px;align-items:center;text-decoration:none;transition:background .2s,border-color .2s}.feature:hover,.card:hover,.text-card:hover,.play:hover{background:var(--fill-2);border-color:var(--line-strong)}.feature-visual{aspect-ratio:1.65;overflow:hidden;background:var(--paper-2);border:1px solid var(--line)}.feature-visual img{width:100%;height:100%;object-fit:cover}.feature h2{font:500 clamp(26px,4vw,38px)/1.3 var(--serif);margin:0 0 14px}.feature p:not(.eyebrow){font-size:14px;line-height:1.9;color:var(--ink-2);margin:0}.enter{display:inline-block;margin-top:24px;font-size:12px;color:var(--accent)}.section{margin-top:64px;scroll-margin-top:28px}.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--line)}.section-title{display:flex;align-items:baseline;gap:14px}.section-title span{font:11px var(--mono);color:var(--accent)}.section h2{font:500 24px var(--serif);margin:0}.section-head>p{font-size:12px;color:var(--ink-3);margin:0;line-height:1.7}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{display:flex;flex-direction:column;text-decoration:none;overflow:hidden;transition:background .2s,border-color .2s}.visual{height:160px;border-bottom:1px solid var(--line);background:var(--paper-2);overflow:hidden;display:grid;place-items:center}.visual img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s}.card:hover .visual img{transform:scale(1.035)}.visual.math{font:52px var(--serif);color:var(--accent);letter-spacing:-.05em;background-image:linear-gradient(var(--cv-grid-soft) 1px,transparent 1px),linear-gradient(90deg,var(--cv-grid-soft) 1px,transparent 1px);background-size:32px 32px}.card-body{padding:22px;flex:1;display:flex;flex-direction:column}.tag{font-size:10px;letter-spacing:.09em;color:var(--ink-3);margin:0 0 10px}.card h3,.text-card h3,.play h3{font:500 21px/1.4 var(--serif);margin:0 0 10px}.desc{font-size:13px;line-height:1.85;color:var(--ink-2);margin:0}.card .enter{margin-top:auto;padding-top:22px}.tools{grid-template-columns:repeat(3,minmax(0,1fr))}.text-card{padding:26px;text-decoration:none;display:flex;flex-direction:column;transition:background .2s,border-color .2s}.glyph{font:38px var(--serif);color:var(--accent);height:70px;display:flex;align-items:flex-start}.text-card .enter{margin-top:auto;padding-top:24px}.playgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.play{display:grid;grid-template-columns:40px 1fr 16px;gap:16px;padding:22px;text-decoration:none;align-items:start;transition:background .2s,border-color .2s}.play-icon{font:24px var(--serif);color:var(--accent);padding-top:2px}.play h3{font-size:18px;margin-bottom:6px}.play .desc{font-size:12px}.arrow{font-size:16px;color:var(--ink-3)}.small-note{margin:22px 0 0;color:var(--ink-3);font-size:12px;line-height:1.8}.small-note a:hover{color:var(--accent)}footer{display:flex;justify-content:space-between;gap:20px;margin-top:70px;padding:24px 0 78px;border-top:1px solid var(--line);font-size:12px;line-height:1.8;color:var(--ink-3)}footer p{margin:0}footer a{text-decoration:none}.theme-btn{width:40px;height:40px} @media(min-width:900px){.grid.math-grid .card:last-child{grid-column:auto}}@media(max-width:800px){.intro{padding-top:52px}.intro-note{display:none}.feature{gap:24px;padding:22px}.grid,.tools{grid-template-columns:repeat(2,minmax(0,1fr))}.tools .text-card:last-child{grid-column:1/-1}.section-head{align-items:start}.section-head>p{max-width:180px;text-align:right}}@media(max-width:560px){.masthead{padding:24px 0}.topnav{gap:16px;font-size:12px}.brand{font-size:12px;letter-spacing:0}.intro{padding:42px 0 30px}.lead{font-size:14px;margin-top:18px}.eyebrow{font-size:10px}.feature{grid-template-columns:1fr;gap:22px;padding:18px}.feature h2{font-size:28px}.feature .enter{margin-top:16px}.grid,.tools,.playgrid{grid-template-columns:1fr}.tools .text-card:last-child{grid-column:auto}.visual{height:185px}.section{margin-top:46px}.section-head{display:block}.section-head>p{max-width:none;text-align:left;margin-top:10px}.section h2{font-size:23px}.card-body{padding:22px}.text-card{padding:24px}.glyph{height:60px}.play{padding:20px;gap:12px;grid-template-columns:28px 1fr 12px}.jumpnav{gap:8px}.jumpnav a{padding:8px 12px}footer{margin-top:46px;display:block}footer p+p{margin-top:10px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">跳到作品内容</a>
 <div class="page">
-
-  <div class="edge edge--top" aria-hidden="true"></div>
-
-  <main class="stack">
-
-    <!-- 主视觉 / 首屏大框：四方向覆盖 -->
-    <a class="frame frame--hero entry" href="./cover.html" data-slot="hero">
-      <div class="entry__thumb">
-        <svg viewBox="0 0 520 320" role="img" aria-label="n=10 的平铺样例，空位沿斜线排布">
-          <defs>
-            <pattern id="pat-cover" width="200" height="200" patternUnits="userSpaceOnUse">
-              <g stroke="var(--cv-grid-soft)" stroke-width="1"><line x1="20" y1="0" x2="20" y2="200"/><line x1="40" y1="0" x2="40" y2="200"/><line x1="60" y1="0" x2="60" y2="200"/><line x1="80" y1="0" x2="80" y2="200"/><line x1="100" y1="0" x2="100" y2="200"/><line x1="120" y1="0" x2="120" y2="200"/><line x1="140" y1="0" x2="140" y2="200"/><line x1="160" y1="0" x2="160" y2="200"/><line x1="180" y1="0" x2="180" y2="200"/><line x1="0" y1="20" x2="200" y2="20"/><line x1="0" y1="40" x2="200" y2="40"/><line x1="0" y1="60" x2="200" y2="60"/><line x1="0" y1="80" x2="200" y2="80"/><line x1="0" y1="100" x2="200" y2="100"/><line x1="0" y1="120" x2="200" y2="120"/><line x1="0" y1="140" x2="200" y2="140"/><line x1="0" y1="160" x2="200" y2="160"/><line x1="0" y1="180" x2="200" y2="180"/></g>
-              <g fill="var(--cv-mark)"><rect x="0" y="0" width="20" height="20"/><rect x="100" y="0" width="20" height="20"/><rect x="60" y="20" width="20" height="20"/><rect x="120" y="40" width="20" height="20"/><rect x="180" y="60" width="20" height="20"/><rect x="40" y="80" width="20" height="20"/><rect x="160" y="100" width="20" height="20"/><rect x="20" y="120" width="20" height="20"/><rect x="80" y="140" width="20" height="20"/><rect x="140" y="160" width="20" height="20"/><rect x="0" y="180" width="20" height="20"/></g>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="var(--cv-bg)"/>
-          <rect width="100%" height="100%" fill="url(#pat-cover)"/>
-        </svg>
-      </div>
-      <div class="entry__text">
-        <h2 class="entry__title">四方向覆盖</h2>
-        <p class="entry__desc">在整数格点上放置棋子，要求横、竖、两条 45° 斜线四个方向都不出现连续 n 个棋子。目前记录了 n = 1 到 50 的晶胞与对应密度。</p>
-      </div>
-    </a>
-
-    <!-- 两栏 -->
-    <div class="row row--2">
-      <a class="frame entry entry--tall" href="./roads.html" data-slot="col-1">
-        <div class="entry__thumb">
-          <svg viewBox="0 0 360 240" role="img" aria-label="4×4 四方向道路阵列">
-            <rect width="100%" height="100%" fill="var(--cv-bg)"/>
-            <g stroke="var(--cv-grid)" stroke-width="1" fill="none"><rect x="80" y="20" width="50" height="50"/><rect x="130" y="20" width="50" height="50"/><rect x="180" y="20" width="50" height="50"/><rect x="230" y="20" width="50" height="50"/><rect x="80" y="70" width="50" height="50"/><rect x="130" y="70" width="50" height="50"/><rect x="180" y="70" width="50" height="50"/><rect x="230" y="70" width="50" height="50"/><rect x="80" y="120" width="50" height="50"/><rect x="130" y="120" width="50" height="50"/><rect x="180" y="120" width="50" height="50"/><rect x="230" y="120" width="50" height="50"/><rect x="80" y="170" width="50" height="50"/><rect x="130" y="170" width="50" height="50"/><rect x="180" y="170" width="50" height="50"/><rect x="230" y="170" width="50" height="50"/></g>
-            <g stroke="var(--cv-ink)" stroke-width="7.5" stroke-linecap="round"><line x1="155" y1="45" x2="180" y2="45"/><line x1="205" y1="45" x2="230" y2="45"/><line x1="205" y1="45" x2="180" y2="45"/><line x1="255" y1="45" x2="255" y2="70"/><line x1="255" y1="45" x2="230" y2="45"/><line x1="105" y1="95" x2="105" y2="120"/><line x1="155" y1="95" x2="180" y2="95"/><line x1="155" y1="95" x2="155" y2="120"/><line x1="205" y1="95" x2="180" y2="95"/><line x1="255" y1="95" x2="255" y2="70"/><line x1="255" y1="95" x2="255" y2="120"/><line x1="105" y1="145" x2="105" y2="120"/><line x1="105" y1="145" x2="130" y2="145"/><line x1="105" y1="145" x2="105" y2="170"/><line x1="155" y1="145" x2="155" y2="120"/><line x1="155" y1="145" x2="180" y2="145"/><line x1="155" y1="145" x2="155" y2="170"/><line x1="155" y1="145" x2="130" y2="145"/><line x1="205" y1="145" x2="230" y2="145"/><line x1="205" y1="145" x2="205" y2="170"/><line x1="205" y1="145" x2="180" y2="145"/><line x1="255" y1="145" x2="255" y2="120"/><line x1="255" y1="145" x2="255" y2="170"/><line x1="255" y1="145" x2="230" y2="145"/><line x1="105" y1="195" x2="105" y2="170"/><line x1="155" y1="195" x2="155" y2="170"/><line x1="155" y1="195" x2="180" y2="195"/><line x1="205" y1="195" x2="205" y2="170"/><line x1="205" y1="195" x2="230" y2="195"/><line x1="205" y1="195" x2="180" y2="195"/><line x1="255" y1="195" x2="255" y2="170"/><line x1="255" y1="195" x2="230" y2="195"/></g>
-          </svg>
-        </div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">道路阵列</h2>
-          <p class="entry__desc">四种构造：4×4、16×16、64 格正六边形、9×9 双色。每个都让全部状态恰好出现一次，并保持道路全连通。</p>
-        </div>
-      </a>
-      <a class="frame entry entry--tall" href="./debruijn.html" data-slot="col-2">
-        <div class="entry__thumb">
-          <svg viewBox="0 0 360 240" role="img" aria-label="4×4 双色 de Bruijn 环面">
-            <rect width="100%" height="100%" fill="var(--cv-bg)"/>
-            <g fill="var(--cv-ink)"><rect x="80" y="20" width="50" height="50"/><rect x="130" y="20" width="50" height="50"/><rect x="180" y="20" width="50" height="50"/><rect x="80" y="70" width="50" height="50"/><rect x="130" y="70" width="50" height="50"/><rect x="230" y="70" width="50" height="50"/><rect x="130" y="120" width="50" height="50"/><rect x="80" y="170" width="50" height="50"/></g>
-            <g stroke="var(--cv-grid)" stroke-width="1" fill="none"><rect x="80" y="20" width="50" height="50"/><rect x="130" y="20" width="50" height="50"/><rect x="180" y="20" width="50" height="50"/><rect x="230" y="20" width="50" height="50"/><rect x="80" y="70" width="50" height="50"/><rect x="130" y="70" width="50" height="50"/><rect x="180" y="70" width="50" height="50"/><rect x="230" y="70" width="50" height="50"/><rect x="80" y="120" width="50" height="50"/><rect x="130" y="120" width="50" height="50"/><rect x="180" y="120" width="50" height="50"/><rect x="230" y="120" width="50" height="50"/><rect x="80" y="170" width="50" height="50"/><rect x="130" y="170" width="50" height="50"/><rect x="180" y="170" width="50" height="50"/><rect x="230" y="170" width="50" height="50"/></g>
-          </svg>
-        </div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">环面 de Bruijn</h2>
-          <p class="entry__desc">三种环面构造：4×4、8×8 双色与 9×9 三色。每个 r×s 窗口读出的图案互不相同，全部图案恰好各出现一次。</p>
-        </div>
-      </a>
-    </div>
-
-    <!-- 三栏 -->
-    <div class="row row--3">
-      <a class="frame entry entry--tall" href="./fractal.html" data-slot="cell-1">
-        <div class="entry__thumb">
-          <img src="./thumb-fractal.webp" width="2048" height="2048" alt="彩色分形图案" loading="lazy">
-        </div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">分形</h2>
-          <p class="entry__desc">可变尺度替换系统：每个符号有自己的阶数和颜色，可编辑规则、生成曲线并导出参数。</p>
-        </div>
-      </a>
-      <a class="frame entry entry--tall" href="./fusible.html" data-slot="cell-2">
-        <div class="entry__thumb">
-          <svg viewBox="0 0 600 400" role="img" aria-label="fusible numbers 示意">
-            <rect width="100%" height="100%" fill="var(--cv-bg)"/>
-            <g stroke="var(--cv-grid)" stroke-width="1">
-              <line x1="0" y1="120" x2="600" y2="120"/>
-              <line x1="0" y1="220" x2="600" y2="220"/>
-              <line x1="0" y1="320" x2="600" y2="320"/>
-              <line x1="200" y1="0" x2="200" y2="400"/>
-              <line x1="400" y1="0" x2="400" y2="400"/>
-            </g>
-            <text x="56" y="176" font-family="'Iowan Old Style',Palatino,Georgia,'Songti SC',serif" font-size="104" fill="var(--cv-ink)" opacity="0.9">ε₀</text>
-            <path d="M60 340 H210 V280 H330 V230 H430 V190 H500" fill="none" stroke="var(--cv-mark)" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="500" cy="190" r="7" fill="var(--cv-mark)"/>
-          </svg>
-        </div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">fusible numbers</h2>
-          <p class="entry__desc">从燃绳问题推导伪燃烧数递归，沿着间断点读出 ω、ω² 与 ε₀。附精确序数互译演示。</p>
-        </div>
-      </a>
-      <a class="frame entry entry--tall" href="./grid-loops.html" data-slot="cell-3">
-        <div class="entry__thumb"><img src="./thumb-grid-loops.svg" width="360" height="240" alt="少量预设线段确定唯一的点阵回路" loading="lazy"></div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">点阵回路</h2>
-          <p class="entry__desc">少量线段，唯一解。从 4×4 到 12×12，补全一条经过全部点的回路，或查看经过验证的答案。</p>
-        </div>
-      </a>
-    </div>
-
-    <!-- 两栏（续） -->
-    <div class="row row--2">
-      <a class="frame entry entry--tall" href="./simple-loop.html" data-slot="cell-4">
-        <div class="entry__thumb">
-          <svg viewBox="0 0 360 240" role="img" aria-label="6×6 黑格回路题面">
-            <rect width="100%" height="100%" fill="var(--cv-bg)"/>
-            <g stroke="var(--cv-grid-soft)" stroke-width="1">
-              <line x1="90" y1="30" x2="90" y2="210"/><line x1="120" y1="30" x2="120" y2="210"/><line x1="150" y1="30" x2="150" y2="210"/><line x1="180" y1="30" x2="180" y2="210"/><line x1="210" y1="30" x2="210" y2="210"/><line x1="240" y1="30" x2="240" y2="210"/><line x1="270" y1="30" x2="270" y2="210"/>
-              <line x1="90" y1="30" x2="270" y2="30"/><line x1="90" y1="60" x2="270" y2="60"/><line x1="90" y1="90" x2="270" y2="90"/><line x1="90" y1="120" x2="270" y2="120"/><line x1="90" y1="150" x2="270" y2="150"/><line x1="90" y1="180" x2="270" y2="180"/><line x1="90" y1="210" x2="270" y2="210"/>
-            </g>
-            <g fill="var(--cv-mark)">
-              <rect x="150" y="30" width="30" height="30"/>
-              <rect x="150" y="90" width="30" height="30"/>
-              <rect x="240" y="90" width="30" height="30"/>
-              <rect x="120" y="150" width="30" height="30"/>
-            </g>
-          </svg>
-        </div>
-        <div class="entry__text">
-          <h2 class="entry__title entry__title--sm">黑格回路</h2>
-          <p class="entry__desc">最少涂黑几格，剩下的白格才有唯一的一条回路？从 2×2 到 12×12 的一组题面。</p>
-        </div>
-      </a>
-      <div class="frame"></div>
-    </div>
-
-    <!-- 通栏收尾 -->
-    <div class="frame frame--wide" data-slot="wide"></div>
-
-  </main>
-
-  <div class="edge edge--bottom" aria-hidden="true"></div>
-
+<header class="masthead">
+<a class="brand" href="./" aria-label="数学与交互实验首页"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>数学与交互实验</a>
+<nav class="topnav" aria-label="主导航"><a href="#math">作品</a><a href="#tools">工具</a><a href="#play">游玩</a></nav>
+</header>
+<main id="main">
+<div class="intro"><div><p class="eyebrow">Mathematics · Tools · Play</p><h1>从一个规则，<br><span>探索更多可能。</span></h1><p class="lead">格点上的构造，走向无穷的序数，还有值得动手解开的谜题。<br>这里收集了一些可以看、可以算、也可以玩的实验。</p></div><div class="intro-note" aria-hidden="true">有限的规则<br>意想不到的结构<br>∞</div></div>
+<nav class="jumpnav" aria-label="作品分类"><a href="#math">01 数学与构造</a><a href="#tools">02 序数与工具</a><a href="#play">03 谜题与实验</a></nav>
+<a class="frame feature" href="./cover.html"><div class="feature-visual"><img src="./thumb-cover.svg" alt="四方向覆盖的格点构造示意"></div><div><p class="eyebrow">Featured · 格点构造</p><h2>四个方向，<br>同一个覆盖问题。</h2><p>在整数格点上放置棋子，让横、竖与两条斜线都不出现连续 n 个棋子。查看 n = 1 到 50 的晶胞构造与对应密度。</p><span class="enter">探索四方向覆盖 ↗</span></div></a>
+<section class="section" id="math" aria-labelledby="math-title"><div class="section-head"><div class="section-title"><span>01 /</span><h2 id="math-title">数学与构造</h2></div><p>从局部规则，观察整体结构。</p></div>
+<div class="grid math-grid">
+<a class="frame card" href="./roads.html"><div class="visual"><img src="./thumb-roads.svg" alt="相互连通的道路阵列" loading="lazy"></div><div class="card-body"><p class="tag">组合构造 / 连通性</p><h3>道路阵列</h3><p class="desc">四种阵列构造，让全部状态恰好出现一次，同时保持道路全连通。</p><span class="enter">查看构造 ↗</span></div></a>
+<a class="frame card" href="./debruijn.html"><div class="visual math" aria-hidden="true">0 1<br>1 0</div><div class="card-body"><p class="tag">周期图案 / 状态遍历</p><h3>de Bruijn 环面</h3><p class="desc">在双色与三色环面上滑动窗口，每一种图案都恰好出现一次。</p><span class="enter">探索环面 ↗</span></div></a>
+<a class="frame card" href="./fractal.html"><div class="visual"><img src="./thumb-fractal.webp" alt="彩色替换规则生成的分形曲线" loading="lazy"></div><div class="card-body"><p class="tag">替换系统 / 可视化</p><h3>分形</h3><p class="desc">为符号设置阶数与颜色，编辑替换规则，生成曲线并导出参数。</p><span class="enter">编辑与生成 ↗</span></div></a>
+</div></section>
+<section class="section" id="tools" aria-labelledby="tools-title"><div class="section-head"><div class="section-title"><span>02 /</span><h2 id="tools-title">序数与工具</h2></div><p>把抽象表达式变成可探索的对象。</p></div>
+<div class="grid tools">
+<a class="frame text-card" href="./Transfinite-Ordinals-Explorer/"><div class="glyph" aria-hidden="true">ω → ω²</div><p class="tag">超限序数 / 基本列</p><h3>序数探索器</h3><p class="desc">输入记号与表达式，逐层展开基本列。支持多种记号、显示视图、注释与自定义记号。</p><span class="enter">打开探索器 ↗</span></a>
+<a class="frame text-card" href="./fusible-numbers/"><div class="glyph" aria-hidden="true">ε₀</div><p class="tag">精确计算 / 序数互译</p><h3>间断点 ↔ 序数</h3><p class="desc">计算驯服可熔数相关递归函数，在间断点、序数与跳跃高度之间进行精确转换。</p><span class="enter">打开计算工具 ↗</span></a>
+<a class="frame text-card" href="./nutri-zh/"><div class="glyph" aria-hidden="true">[字] . *</div><p class="tag">中文检索 / 正则模式</p><h3>汉字正则查找</h3><p class="desc">在约 120 万字词中按模式检索，结合笔画与拼音筛字，也可以取字或求条件交集。</p><span class="enter">开始查找 ↗</span></a>
+</div><p class="small-note">想先了解燃绳问题与序数的联系？可以从 <a href="./fusible.html">fusible numbers 图文与交互演示</a> 开始。</p></section>
+<section class="section" id="play" aria-labelledby="play-title"><div class="section-head"><div class="section-title"><span>03 /</span><h2 id="play-title">谜题与实验</h2></div><p>补全一条回路，或试试另一种玩法。</p></div>
+<div class="playgrid">
+<a class="frame play" href="./grid-loops.html"><span class="play-icon" aria-hidden="true">▦</span><div><h3>点阵回路</h3><p class="desc">从少量预设线段出发，补全经过全部点的唯一回路。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./simple-loop.html"><span class="play-icon" aria-hidden="true">◩</span><div><h3>黑格回路</h3><p class="desc">最少涂黑几格，才能让剩余白格只有一条回路？</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./slitherlink/"><span class="play-icon" aria-hidden="true">③</span><div><h3>数回 · 每日一题</h3><p class="desc">满足格中的数字，连起闭合回路；也有趣味模式。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./neon-trail-duel/"><span class="play-icon" aria-hidden="true">ϟ</span><div><h3>霓虹光迹对决</h3><p class="desc">创建房间，邀请另一位玩家展开双人光迹对战。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./rope-playground.html"><span class="play-icon" aria-hidden="true">≋</span><div><h3>燃绳实验</h3><p class="desc">选择端点点火、推进燃尽事件，用精确分数探索燃绳计时。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./tank-playground.html"><span class="play-icon" aria-hidden="true">∪</span><div><h3>水箱计时实验</h3><p class="desc">调整水龙头与水箱，探索另一种计时构造。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+<a class="frame play" href="./sheep27/"><span class="play-icon" aria-hidden="true">✧</span><div><h3>未羊秘境</h3><p class="desc">解开试炼，移动基石，逐步补全星罗六合阵。</p></div><span class="arrow" aria-hidden="true">↗</span></a>
+</div></section>
+</main>
+<footer><p>数学与交互实验<br>一些关于规则、结构与可能性的探索。</p><p><a href="#main">回到顶部 ↑</a></p></footer>
 </div>
-
-<button class="theme-btn" id="themeBtn" type="button" aria-label="切换主题">☀</button>
-
+<button class="theme-btn" id="themeBtn" type="button" aria-label="切换到亮色主题" aria-pressed="true">☀</button>
 <script>
-(function(){
-  var root = document.documentElement;
-  root.classList.add('js');
-
-  var frames = document.querySelectorAll('.frame');
-  var show = function(el){ el.classList.add('is-in'); };
-
-  if (!('IntersectionObserver' in window)) {
-    frames.forEach(show);
-    return;
-  }
-
-  // 首屏内的框直接依次出场，其余滚动进入时再显示
-  frames.forEach(function(el, i){
-    if (i < 3) { el.style.setProperty('--d', (i * 90) + 'ms'); show(el); }
-  });
-
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
-    });
-  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
-  frames.forEach(function(el){ io.observe(el); });
-})();
-</script>
-<script>
-(function(){
-  var root = document.documentElement;
-  var btn = document.getElementById('themeBtn');
-  var KEY = 'site-theme';
-  function paint(t){
-    root.setAttribute('data-theme', t);
-    if (btn) {
-      btn.textContent = t === 'dark' ? '☀' : '☾';
-      btn.setAttribute('aria-label', t === 'dark' ? '切到亮色' : '切到暗色');
-    }
-    if (typeof window.onThemeChanged === 'function') window.onThemeChanged();
-  }
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) {}
-  paint(saved || 'dark');
-  if (btn) btn.addEventListener('click', function(){
-    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem(KEY, next); } catch (e) {}
-    paint(next);
-  });
-})();
+(function(){var root=document.documentElement,btn=document.getElementById('themeBtn');function paint(t){root.dataset.theme=t;btn.textContent=t==='dark'?'☀':'☾';btn.setAttribute('aria-label',t==='dark'?'切换到亮色主题':'切换到暗色主题');btn.setAttribute('aria-pressed',String(t==='dark'))}paint(root.dataset.theme);btn.addEventListener('click',function(){var t=root.dataset.theme==='dark'?'light':'dark';paint(t);try{localStorage.setItem('site-theme',t)}catch(e){}})})();
 </script>
 </body>
 </html>
