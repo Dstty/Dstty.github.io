@@ -4,11 +4,10 @@
   const NS = 'http://www.w3.org/2000/svg';
   const data = window.SIMPLE_LOOP || {};
   const order = Object.keys(data).map(Number).sort((a, b) => a - b);
-  const MIN_PROVEN = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
   const board = $('board');
-  let n = 11, D, black, cycle, edges, edgeIndex, cell;
-  let selected, excluded, history, reveal = false;
+  let n = 11, D, black, edges, edgeIndex, cell;
+  let selected, excluded, history;
   let lineEls = [], crossEls = [], hotEl = null;
 
   let painting = false, dragFrom = -1, strokeMode = null, paintKind = 'line';
@@ -27,11 +26,6 @@
   function build(nn) {
     n = nn; D = data[n];
     black = new Set(D.black.map(([r, c]) => r * n + c));
-    cycle = new Set();
-    for (let i = 0; i < D.cycle.length; i++) {
-      const a = D.cycle[i], b = D.cycle[(i + 1) % D.cycle.length];
-      cycle.add(key(a[0] * n + a[1], b[0] * n + b[1]));
-    }
     edges = []; edgeIndex = new Map();
     for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
       const a = r * n + c;
@@ -39,13 +33,12 @@
       if (c + 1 < n && !black.has(a + 1)) { edgeIndex.set(key(a, a + 1), edges.length); edges.push([a, a + 1]); }
       if (r + 1 < n && !black.has(a + n)) { edgeIndex.set(key(a, a + n), edges.length); edges.push([a, a + n]); }
     }
-    selected = new Set(); excluded = new Set(); history = []; reveal = false;
+    selected = new Set(); excluded = new Set(); history = [];
     for (const b of document.querySelectorAll('[data-size]')) {
       b.setAttribute('aria-pressed', String(Number(b.dataset.size) === n));
     }
     $('board-title').textContent = `${n} × ${n} 点阵`;
-    $('record-note').textContent = `${D.black.length} 个黑格 · ` +
-      (MIN_PROVEN.has(n) ? (n === 2 ? '无需黑格即唯一' : '已确认最少') : '构造，最少性未定');
+    $('record-note').textContent = `${n * n - D.black.length} 个白格 · 连成一条闭合回路`;
     $('coordinates').replaceChildren(...D.black.map(([r, c]) => {
       const li = document.createElement('li');
       li.textContent = `(${r}, ${c})`;
@@ -103,24 +96,21 @@
   }
 
   function sync() {
-    const vis = reveal ? cycle : selected;
     for (let e = 0; e < edges.length; e++) {
       const k = key(edges[e][0], edges[e][1]);
-      lineEls[e].classList.toggle('drawn', vis.has(k));
-      lineEls[e].classList.toggle('revealed', reveal && vis.has(k));
-      crossEls[e].style.display = (!reveal && excluded.has(k)) ? '' : 'none';
+      lineEls[e].classList.toggle('drawn', selected.has(k));
+      crossEls[e].style.display = excluded.has(k) ? '' : 'none';
     }
-    $('undo').disabled = reveal || !history.length;
-    $('reset').disabled = reveal || (!selected.size && !excluded.size);
-    $('solution').textContent = reveal ? '收起答案' : '查看唯一解';
-    $('solution').setAttribute('aria-pressed', String(reveal));
+    $('undo').disabled = !history.length;
+    $('reset').disabled = !selected.size && !excluded.size;
+    $('solution').textContent = '活动期间暂不支持查看答案';
+    $('solution').disabled = true;
     status();
   }
 
   function status() {
     const el = $('status');
     el.classList.remove('success');
-    if (reveal) { el.textContent = '已显示唯一解。收起答案后可继续。'; return; }
     const N = n * n;
     const adj = Array.from({ length: N }, () => []);
     for (const k of selected) {
@@ -210,7 +200,6 @@
   }
 
   board.addEventListener('pointerdown', (ev) => {
-    if (reveal) return;
     ev.preventDefault();
     const pt = toLocal(ev);
     if (board.setPointerCapture) { try { board.setPointerCapture(ev.pointerId); } catch (_) {} }
@@ -286,7 +275,7 @@
     b.type = 'button';
     b.dataset.size = nn;
     b.setAttribute('aria-pressed', 'false');
-    b.innerHTML = `${nn} × ${nn} <small>${data[nn].black.length} 黑格</small>`;
+    b.textContent = `${nn} × ${nn}`;
     b.addEventListener('click', () => build(nn));
     tabs.append(b);
   }
@@ -296,10 +285,8 @@
     const h = history.pop(); selected = h.s; excluded = h.x; sync();
   });
   $('reset').addEventListener('click', () => {
-    if (reveal) return;
     snapshot(); selected = new Set(); excluded = new Set(); sync();
   });
-  $('solution').addEventListener('click', () => { reveal = !reveal; sync(); });
 
   build(11);
 })();
