@@ -1,11 +1,11 @@
-# Hydra · 序数展开实验室
+# Hydra 层级与表示形式 · 互动文章
 
-纯静态交互页面，无第三方运行依赖。直接打开 index.html，或部署到 GitHub Pages。
+主页面 index.html 以 report.md 全文为主体，保留全部章节、公式、七幅树形／层级图，在对应算例位置嵌入六个局部互动组件。原展开实验室保留在 lab.html，作为辅助入口。
 
-功能：KP/PSS 树形展开；括号与 PrSS/HPrSS/BMS 编码；任意有限行 BM4；0-Y 山脉；下一步预览、撤销、预设、种子行数滑块和 SVG 导出。全部记号作为序数记号。0-Y Hydra 在共同极限层级中说明，未提供独立展开器。
+所有记号直接作为序数记号。0-Y、0-Y Hydra 与完整 BMS 的共同极限为 BMO／SHO。0-Y Hydra 未提供独立展开器。
 
-验证：`node engine.test.cjs`。真实浏览器验证脚本 browser.test.cjs 使用本机 Chrome DevTools 端口 9237；`TEST_URL` 可指定已部署地址。已验证桌面和移动端、四个模式、参数、展开、撤销、重置、输入校验与种子载入。
+公式用本地 MathJax 3.2.2，静态图用本地 Mermaid 10.9.3 渲染，不依赖外部 CDN。两者分别采用 Apache-2.0 和 MIT 许可；项目地址 https://github.com/mathjax/MathJax 和 https://github.com/mermaid-js/mermaid 。生成 HTML 的脚本使用 Python Markdown。
 
-编号：q 为最终总副本数。BMS 与 0-Y 原始展开存在末端边界差异，页面保留各自定义并明确解释。
+算法验证：`node engine.test.cjs`。文章真实浏览器检查：`node article.test.cjs`，使用 Chrome DevTools 端口 9237，可用 TEST_URL 指向线上地址。覆盖全文章节、公式、静态图、六个组件操作和手机宽度。
 
-内容与算法参考见页面末尾及 report.md。
+q 为最终总副本数。BMS 与 0-Y 的基本列末端边界不同，正文保留并解释这一约定。

@@ -1,16 +1,794 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="从自然数到 KP Hydra、PSS Hydra、0-Y 与 BMS：看见序数的基本列展开。"><title>Hydra · 序数展开实验室</title><link rel="stylesheet" href="style.css"><script defer src="engine.js"></script><script defer src="app.js"></script></head>
-<body><header><a class="brand" href="#">H<span>／</span>HYDRA</a><nav><a href="#lab">展开实验室</a><a href="#layers">层级地图</a><a href="#reading">阅读与规则</a><a href="https://github.com/Dstty/Dstty.github.io/tree/main/hydra" target="_blank" rel="noopener">GitHub ↗</a></nav></header>
-<main><section class="hero"><div class="eyebrow">ORDINALS / TREES / FUNDAMENTAL SEQUENCES</div><h1>一棵树，<br>看见序数的层次。</h1><p>改变一个参数，观察基本列怎样展开。<br>在树、括号、数字序列与矩阵之间，追踪同一个结构。</p><a class="primary linkbutton" href="#lab">开始探索 <span>↓</span></a><div class="hero-glyph" aria-hidden="true">ω<span>ε₀</span><small>SHO</small></div></section>
-<section id="lab" class="lab"><div class="sectionhead"><div><div class="eyebrow">01 / INTERACTIVE LAB</div><h2>把展开过程拆开来看</h2></div><span class="badge">全部作为序数记号</span></div>
-<div class="tabs" role="tablist" aria-label="序数系统"><button role="tab" data-mode="kp">KP Hydra / PrSS</button><button role="tab" data-mode="pss" class="active">PSS Hydra / HPrSS</button><button role="tab" data-mode="bms">任意有限行 BMS</button><button role="tab" data-mode="y">0-Y 山脉</button></div>
-<div class="workspace"><aside class="controls"><label for="preset">选择一个起点</label><select id="preset"></select><label for="expression">当前表达式</label><textarea id="expression" rows="4" spellcheck="false"></textarea><p id="inputhint" class="hint"></p><button id="apply" class="secondary">载入表达式</button><div class="rangehead"><label for="q">基本列参数 · 总份数</label><output id="qval" for="q">3</output></div><input type="range" id="q" min="1" max="6" value="3"><div class="rangelabel"><span>1 份</span><span>6 份</span></div><div class="actions"><button id="step" class="primary">展开一步 →</button><button id="undo" class="secondary" disabled>撤销</button><button id="reset" class="textbutton">回到起点</button></div><div id="status" role="status" aria-live="polite"></div><div class="legend"><span><i class="red"></i>末叶／末列</span><span><i class="blue"></i>参考节点／坏根</span><span><i class="green"></i>展开结果</span></div></aside>
-<div class="display"><div class="viewhead"><h3 id="viewtitle">树的包含关系</h3><div class="viewtools"><label><input id="annotations" type="checkbox" checked> 编码标注</label><button id="saveSvg" class="textbutton">下载图 SVG</button></div></div><div id="canvas" class="canvas"></div><div id="explanation" class="explanation"></div><div class="representations" id="representations"></div></div></div>
-<div class="previewsection"><div class="sectionhead small"><h3>下一步预览</h3><span>调整 q 即时比较；点击“展开一步”采用这个结果</span></div><div id="preview"></div></div>
-<details class="history"><summary>展开记录 <span id="stepcount">0 步</span></summary><ol id="history"></ol></details></section>
-<section id="layers" class="layers"><div class="eyebrow">02 / THE HIERARCHY</div><h2>不断加行，走到同一整体。</h2><p class="lead">有限阶段逐层增加；汇集任意有限层级后，新增的有限 Hydra 结构被整体吸收。</p><div class="layercards"><button data-layer="0"><small>零行</small><strong>ω</strong><span>自然数 / P</span></button><button data-layer="1"><small>单行</small><strong>ε₀</strong><span>KP Hydra / PrSS</span></button><button data-layer="2"><small>双行</small><strong>BO</strong><span>PSS Hydra / HPrSS / PSS</span></button><button data-layer="3"><small>任意有限行的整体</small><strong>SHO</strong><span>BMS / 0-Y / 0-Y Hydra</span></button></div><div id="layerdetail" class="layerdetail" aria-live="polite"></div><div class="heightlab"><label for="height">改变 BMS 种子行数 h <output id="heightval">3</output></label><input type="range" id="height" min="1" max="8" value="3"><div id="seed"></div><p>每个种子都是有限矩阵。放开统一行数上限，才得到完整 BMS 的整体层级。</p><button id="loadSeed" class="secondary">把这个种子放进实验室 ↗</button></div></section>
-<section id="reading" class="reading"><div class="eyebrow">03 / HOW TO READ THE EXPANSION</div><h2>规则要能落到每一步。</h2><div class="rulegrid"><article><span>01</span><h3>零、后继与极限</h3><p>空项表示 0；后继项取前驱；极限项由参数 q 给出基本列项。页面所有对象都直接作为序数项讨论。</p></article><article><span>02</span><h3>KP：并列复制</h3><p>固定处理最右末叶。它若在公共根下，直接删除；否则删除末叶，将其父节点与剩余子树保留 q 份，放回原位置。</p></article><article><span>03</span><h3>PSS：标签决定找层</h3><p>最小标签 1 使用普通再生。标签 n>1 时，向外找最近的 n−1 节点，取完整上下文 F，用 F 迭代 q 次作用于 0 的结果替换选中子树。</p></article><article><span>04</span><h3>HPrSS：阶差与偏移</h3><p>节点路径上的标签和形成序列。父项是左侧最近较小值；节点标签等于与父项之差。找坏根后，每一块按 δ＝末值−根值−1 增加。</p></article><article><span>05</span><h3>BMS：多层祖先链</h3><p>下一行只在上一行祖先链中找父项。复制坏部时，只有依赖坏根的元素增加对应偏移；底部全零行可以消去。</p></article><article><span>06</span><h3>0-Y：阶差山脉</h3><p>不断向上取受祖先关系约束的阶差。在决定层将末值减 1、复制坏部，再沿父项连线由上向下回填。</p></article></div>
-<details><summary>为什么 BMS 与 0-Y 的同参数结果可能多一个末项？</summary><p>两种基本列定义采用不同的坏部边界：本页 BMS 包含根列、排除旧末列；0-Y 包含根列右侧至旧末列。对于本页示例，将 BMS 展开后转换得到的序列，与 0-Y 展开结果去掉最后一项相符。页面分别展示各自的原始规则，不把编号约定抹平。</p></details>
-<details><summary>0-Y Hydra 在哪里？</summary><p>0-Y、0-Y Hydra 和完整 BMS 的整体极限相同，为 BMO／SHO。0-Y Hydra 新增的有限树结构仍能容纳在足够高的有限层级中。此页面已提供 KP、PSS、BMS 和 0-Y 的展开器；0-Y Hydra 在层级图中说明，尚未提供它的独立展开器。</p></details>
-<div class="sources"><a href="report.md">阅读完整 Markdown 文稿 ↗</a><a href="https://arxiv.org/html/2307.04606v3" target="_blank" rel="noopener">BM4 定义与良序研究 ↗</a><a href="https://wiki.googology.top/index.php?title=0-Y" target="_blank" rel="noopener">0-Y 规则来源 ↗</a><a href="https://wiki.googology.top/index.php?title=PSS_Hydra" target="_blank" rel="noopener">PSS Hydra 规则来源 ↗</a></div><p class="footnote">BMS 与 0-Y 的转换按现有算法实现；一般语义等价尚非这里给出的证明。SHO 是本文采用的整体极限名称，不预设其传统序数刻画已经完成。</p></section>
-</main><footer><span>HYDRA / 序数展开实验室</span><span>Dstty · 无外部依赖 · 可离线使用</span></footer></body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hydra 层级、展开规则与不同表示形式</title><meta name="description" content="从自然数、KP Hydra、PrSS 到 PSS Hydra、HPrSS、BMS 与 0-Y：带有局部互动算例的完整文章。"><link rel="stylesheet" href="article.css"><script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'local'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script><script defer src="vendor/tex-svg.js"></script><script defer src="vendor/mermaid.min.js"></script><script defer src="engine.js"></script><script defer src="article-widgets.js"></script><script defer src="article-init.js"></script></head><body><header class="topbar"><a href="#">HYDRA / 序数笔记</a><nav><a href="report.md">原文 Markdown</a><a href="lab.html">展开实验室 ↗</a><a href="https://github.com/Dstty/Dstty.github.io/tree/main/hydra">GitHub ↗</a></nav></header><div class="article-head"><div class="kicker">ORDINAL NOTES · INTERACTIVE ARTICLE</div><h1>Hydra 层级、展开规则<br>与不同表示形式</h1><p class="deck">从零行的自然数记号出发，沿着“加一行 Hydra”的路线，理解树、括号、数字序列与矩阵怎样表达同一层级。</p><div class="meta"><span>全文阅读 · 约 35 分钟</span><span>6 个嵌入式互动算例</span><span>所有记号均作为序数记号</span></div></div><details class="mobile-toc"><summary>文章目录</summary><a href="#0">0. 本文的统一约定</a><a href="#1">1. 零行：自然数记号</a><a href="#2-hydrakp-hydra">2. 第一行 Hydra：KP Hydra</a><a href="#3-prss-kp-hydra">3. PrSS：把 KP Hydra 写成纯数字序列</a><a href="#4-hydrapss-hydra">4. 再加一行 Hydra：PSS Hydra</a><a href="#5-hprss-hydra">5. HPrSS：把带标签 Hydra 压成纯数字序列</a><a href="#6-bms">6. 双行 BMS：把树深度与标签分开写</a><a href="#7-hydra">7. 从实际展开看，“加一行 Hydra”增加了什么</a><a href="#8-bms-0-y">8. 不断加行的极限：BMS 与 0-Y</a><a href="#9-0-y-hydra">9. 那么，0-Y Hydra 放在哪里？</a><a href="#10">10. 规则与算例的核对</a><a href="#_1">参考资料</a></details><main class="layout"><aside class="toc"><strong>文章目录</strong><a href="#0">0. 本文的统一约定</a><a href="#1">1. 零行：自然数记号</a><a href="#2-hydrakp-hydra">2. 第一行 Hydra：KP Hydra</a><a href="#3-prss-kp-hydra">3. PrSS：把 KP Hydra 写成纯数字序列</a><a href="#4-hydrapss-hydra">4. 再加一行 Hydra：PSS Hydra</a><a href="#5-hprss-hydra">5. HPrSS：把带标签 Hydra 压成纯数字序列</a><a href="#6-bms">6. 双行 BMS：把树深度与标签分开写</a><a href="#7-hydra">7. 从实际展开看，“加一行 Hydra”增加了什么</a><a href="#8-bms-0-y">8. 不断加行的极限：BMS 与 0-Y</a><a href="#9-0-y-hydra">9. 那么，0-Y Hydra 放在哪里？</a><a href="#10">10. 规则与算例的核对</a><a href="#_1">参考资料</a><a class="download" href="report.md">下载 Markdown ↗</a></aside><article><p>本文所有记号均作为序数记号讨论。“给一个纯数字序列记号加一行 Hydra”，需要说明新增树结构怎样取基本列、节点标签怎样参与展开，以及复制的结构怎样回填。本篇从自然数记号出发，依次写出 KP Hydra、PrSS、PSS Hydra 和 HPrSS 的具体操作，再说明它们与矩阵表示的关系。</p>
+<p>这里的“行”指构造层级。在矩阵中体现为行数，在树、括号和纯数字序列中则未必写成多行。我们研究的路线是：</p>
+<p>\[
+\text{自然数记号}\ \xrightarrow{+\text{一行 Hydra}}\
+\text{KP Hydra／PrSS}\ \xrightarrow{+\text{一行 Hydra}}\
+\text{PSS Hydra／HPrSS／双行 BMS}.
+\]</p>
+<h2 id="0">0. 本文的统一约定</h2>
+<p>一次展开使用参数 \(q\ge1\)，<strong>q 表示最终保留的副本总数，或嵌套的上下文总层数</strong>。用 \(E_q\) 表示这次操作。</p>
+<p>本文统一按副本总数 q 标记基本列项，便于直接比较各表示中的算例。极限项 A 满足 \(A=\sup_{q\ge1}E_q(A)\)；后继项则按规则取前驱。</p>
+<p>“+”在括号记号中表示按顺序并列。所有展开都固定处理最右侧的末叶；带标签时，末叶是最右侧最内层的 \(p_k(0)\)。</p>
+<p>空项表示序数 0；后继项删除相应末端后得到前驱；极限项通过展开规则给出基本列。下文中的树、括号、序列和矩阵，都是这些序数项的不同写法。</p>
+<h2 id="1">1. 零行：自然数记号</h2>
+<p>空序列表示 0，n 个 0 并排表示自然数 n：</p>
+<pre><code class="language-text">()          → 0
+(0)         → 1
+(0,0)       → 2
+(0,0,0)     → 3
+</code></pre>
+<p>规则只有一条：非空时删掉最后一个 0。例如：</p>
+<pre><code class="language-text">(0,0,0) → (0,0) → (0) → ()
+</code></pre>
+<p>它在表达能力上相当于通常的 P 记号，可以视为零行记号。所有有限长度都允许，故极限为 ω。</p>
+<h2 id="2-hydrakp-hydra">2. 第一行 Hydra：KP Hydra</h2>
+<h3 id="21">2.1 树怎样写成括号</h3>
+<p>用 \(h(A)\) 表示一个节点，其内部的 A 是有序排列的子树。\(h(0)\) 是叶子；\(A+B\) 是两部分并排。</p>
+<p>为简洁起见，不写共同的最外部根节点，而把根下的子树写成一个森林：</p>
+<pre><code class="language-text">0                    只有公共根，没有其他节点
+h(0)                 公共根下有一片叶子
+h(0)+h(0)            公共根下有两片叶子
+h(h(0))              从公共根出发的一条两节点链
+h(h(0)+h(0))         一个节点下挂两片叶子
+</code></pre>
+<p>若坚持用每对括号表示节点，可把 <code>h(A)</code> 写成 <code>(A)</code>；本文使用 h 是为了避免把空森林、叶子、序列括号混淆。</p>
+<p>下图对应 <code>h(h(0)+h(0))</code>。虚线框的 R 是省略不写的公共根；每个圆形节点对应一个 h。左右子节点的顺序对应括号内的书写顺序，节点数值 0 不另画为节点。</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    R[&quot;R：公共根&quot;] --&gt; A((&quot;h&quot;))
+    A --&gt; L((&quot;h&quot;))
+    A --&gt; Z((&quot;h&quot;))
+    classDef root fill:#f1f5f9,stroke:#64748b,stroke-dasharray:5 4;
+    classDef ordinary fill:#eff6ff,stroke:#2563eb;
+    class R root;
+    class A,L,Z ordinary;
+</pre></div>
+
+<p>圆形节点 A 的两个子节点都是叶子：各表示 <code>h(0)</code>；它们共同被 A 包含，所以整个表达式是 <code>h(h(0)+h(0))</code>。</p>
+<h3 id="22-kp-hydra">2.2 KP Hydra 的具体展开规则</h3>
+<p>找到最右侧叶子 \(h(0)\)，记它的父节点为 v。</p>
+<p><strong>情形一：v 是公共根。</strong>直接删掉这片叶子。</p>
+<p>\[
+A+h(0)\longmapsto A.
+\]</p>
+<p><strong>情形二：v 不是公共根。</strong>先删掉叶子；然后把以 v 为根的剩余子树，放 q 份在 v 原来所在的位置。</p>
+<p>用括号写，若局部结构为</p>
+<p>\[
+h(A+h(0)),
+\]</p>
+<p>就替换成</p>
+<p>\[
+\underbrace{h(A)+\cdots+h(A)}_{q\text{ 份}}.
+\]</p>
+<p>外部的树保持不动。注意复制的是“叶子的父节点及其删叶后剩余的全部子树”，不是只复制叶子的兄弟。</p>
+<h3 id="23">2.3 例一：一条短链展开成自然数</h3>
+<p>\[
+h(h(0))\xrightarrow{E_3}h(0)+h(0)+h(0).
+\]</p>
+<p>过程是：删掉内侧叶子，外侧 h 成为叶子；把这个外侧叶子保留 3 份。</p>
+<p>随后每次删除一个顶层叶子：</p>
+<p>\[
+h(0)+h(0)+h(0)\to h(0)+h(0)\to h(0)\to0.
+\]</p>
+<h3 id="24">2.4 例二：只复制局部父子树</h3>
+<p>\[
+h(h(0)+h(0))\xrightarrow{E_3}
+ h(h(0))+h(h(0))+h(h(0)).
+\]</p>
+<p>先删最右侧叶子，原来包含两片叶子的节点剩下一片叶子；将整个剩余子树 \(h(h(0))\) 复制为 3 份。</p>
+<p>下图从左到右列出三个阶段。红色表示待删除的末叶，绿色表示展开结果；中间阶段只是操作示意，不是另一个基本列项。</p>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph before[&quot;① 原项：h(h(0)+h(0))&quot;]
+        direction TB
+        R0[&quot;R&quot;] --&gt; A0((&quot;h&quot;))
+        A0 --&gt; L0((&quot;h&quot;))
+        A0 --&gt; Z0((&quot;删去&quot;))
+    end
+    subgraph cut[&quot;② 删去末叶后的剩余子树&quot;]
+        direction TB
+        R1[&quot;R&quot;] --&gt; A1((&quot;h&quot;))
+        A1 --&gt; L1((&quot;h&quot;))
+    end
+    subgraph after[&quot;③ E₃：剩余子树放三份&quot;]
+        direction TB
+        R2[&quot;R&quot;] --&gt; A2((&quot;h&quot;))
+        R2 --&gt; A3((&quot;h&quot;))
+        R2 --&gt; A4((&quot;h&quot;))
+        A2 --&gt; L2((&quot;h&quot;))
+        A3 --&gt; L3((&quot;h&quot;))
+        A4 --&gt; L4((&quot;h&quot;))
+    end
+    classDef root fill:#f1f5f9,stroke:#64748b,stroke-dasharray:5 4;
+    classDef removed fill:#fee2e2,stroke:#dc2626;
+    classDef result fill:#dcfce7,stroke:#16a34a;
+    class R0,R1,R2 root;
+    class Z0 removed;
+    class A2,A3,A4,L2,L3,L4 result;
+</pre></div>
+
+<p>复制范围包括父节点 A 及它保留的左叶子；因此结果是三条两节点链，不是给原来的 A 再挂三片叶子。</p>
+<p>再如：</p>
+<p>\[
+h(h(h(0)))\xrightarrow{E_3}
+ h(h(0)+h(0)+h(0)).
+\]</p>
+<p>这里被复制的是中间节点删叶后形成的叶子；最外侧的 h 保持不动。因此并非每次都复制整棵树。</p>
+<div class="ordinal-widget" data-kind="tree" data-title="KP：删叶以后复制哪一部分？" data-kp="true" data-value="[{&quot;k&quot;: 1, &quot;children&quot;: [{&quot;k&quot;: 1, &quot;children&quot;: []}, {&quot;k&quot;: 1, &quot;children&quot;: []}]}]"></div>
+
+<h3 id="25">2.5 它怎样表示序数</h3>
+<p>在标准、按序排列的括号表达式中，把</p>
+<p>\[
+h(A)\quad\text{解释为}\quad\omega^{o(A)},
+\]</p>
+<p>并列解释为相应的 Cantor 和。例如：</p>
+<table>
+<thead>
+<tr>
+<th>KP 括号</th>
+<th>序数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>h(0)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>h(0)+h(0)</td>
+<td>2</td>
+</tr>
+<tr>
+<td>h(h(0))</td>
+<td>ω</td>
+</tr>
+<tr>
+<td>h(h(0)+h(0))</td>
+<td>ω²</td>
+</tr>
+<tr>
+<td>h(h(h(0)))</td>
+<td>ω^ω</td>
+</tr>
+</tbody>
+</table>
+<p>任意有限深度的迭代指数都可以表达，整体极限为 ε₀。本篇采用标准的有序表达式，以便将树形项、Cantor 正规形及序列表示直接对照。[1][2]</p>
+<h2 id="3-prss-kp-hydra">3. PrSS：把 KP Hydra 写成纯数字序列</h2>
+<h3 id="31">3.1 编码方法</h3>
+<p>按从左到右、先访问父节点再访问子节点的顺序遍历树，记录每个非公共根节点的深度，并把公共根的直接子节点记为深度 0。</p>
+<table>
+<thead>
+<tr>
+<th>KP 括号</th>
+<th>PrSS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>()</td>
+</tr>
+<tr>
+<td>h(0)</td>
+<td>(0)</td>
+</tr>
+<tr>
+<td>h(0)+h(0)</td>
+<td>(0,0)</td>
+</tr>
+<tr>
+<td>h(h(0))</td>
+<td>(0,1)</td>
+</tr>
+<tr>
+<td>h(h(0)+h(0))</td>
+<td>(0,1,1)</td>
+</tr>
+<tr>
+<td>h(h(h(0)))</td>
+<td>(0,1,2)</td>
+</tr>
+</tbody>
+</table>
+<p>序列从 0 开始；向右增加深度时最多增加 1，向上退回则可以下降多级。这样记录的是同一棵树，括号被深度信息替代。</p>
+<h3 id="32-prss">3.2 PrSS 的展开算法</h3>
+<p>给定 \(S=(s_1,\ldots,s_m)\)：</p>
+<ol>
+<li>空序列表示 0，不再操作。</li>
+<li>若末项为 0，删除末项。</li>
+<li>若末项 L&gt;0，从末项向左找到最近的小于 L 的项，称为坏根。</li>
+<li>坏根之前的部分为好部 G；从坏根开始直到倒数第二项为坏部 B。</li>
+<li>删除末项，以 q 份 B 代替原来的坏部：</li>
+</ol>
+<p>\[
+S=(G,B,L)\quad\Longrightarrow\quad E_q(S)=(G,\underbrace{B,\ldots,B}_{q}).
+\]</p>
+<p>在这里的 PrSS 深度序列中，坏根就是末叶的父节点。[3]</p>
+<h3 id="33">3.3 完整例子</h3>
+<p>取</p>
+<p>\[
+S=(0,1,2,3,3,3).
+\]</p>
+<p>末项是最后的 3；向左跳过另外两个 3，最近的小数是 2，因此：</p>
+<pre><code class="language-text">好部 G = (0,1)
+坏部 B = (2,3,3)
+末项 L = 3
+</code></pre>
+<p>取 q=3：</p>
+<p>\[
+E_3(S)=(0,1,2,3,3,2,3,3,2,3,3).
+\]</p>
+<p>这正是删掉最右叶子以后，把其父节点及剩余子树复制成 3 份。</p>
+<p>前面两个短例子也直接变成：</p>
+<p>\[
+E_3(0,1)=(0,0,0),
+\]</p>
+<p>\[
+E_3(0,1,1)=(0,1,0,1,0,1),
+\]</p>
+<p>\[
+E_3(0,1,2)=(0,1,1,1).
+\]</p>
+<p>所以 KP Hydra 与 PrSS 的对应可以直接从展开过程看出来：<strong>一个操作树，一个操作树的深度序列。</strong>两者的极限均为 ε₀。</p>
+<h2 id="4-hydrapss-hydra">4. 再加一行 Hydra：PSS Hydra</h2>
+<h3 id="41">4.1 记号与标签</h3>
+<p>现在使用 \(p_k(A)\)，k 为正整数，表示标签为 k 的节点，内部 A 是子节点森林。\(p_k(0)\) 是标签为 k 的叶子；最小标签为 1。</p>
+<p>只使用标签 1 时，它退化为前面的无标签 KP 括号结构。出现更高标签以后，新增的是另一类找层与嵌套再生规则。</p>
+<p>为了保证找层能进行，通常采用这样的语法约束：顶层节点标签为 1；标签为 k 的节点内部，其直接子节点的标签至多为 k+1，可以低于 k。以下例子均满足此约束。[4]</p>
+<h3 id="42">4.2 先定位最右叶子</h3>
+<p>每次从右向左处理表达式的末端，直到找到最右侧的 \(p_n(0)\)。规则分成三种。</p>
+<h4 id="a-1">A. 标签 1 的叶子位于顶层：直接删除</h4>
+<p>\[
+E_q(A+p_1(0))=A.
+\]</p>
+<p>这是后继操作，与参数无关。</p>
+<h4 id="b-1">B. 标签 1 的叶子位于某节点内部：并排复制父节点</h4>
+<p>若它最近的外层节点为 \(p_k\)，局部结构写成</p>
+<p>\[
+p_k(A+p_1(0)),
+\]</p>
+<p>则删掉该叶子，把剩余父子树复制 q 份：</p>
+<p>\[
+p_k(A+p_1(0))\longmapsto
+\underbrace{p_k(A)+\cdots+p_k(A)}_{q}.
+\]</p>
+<p>再把这些副本放回原来的外部位置。这是普通 KP 再生的带标签版本。</p>
+<h4 id="c-n1-n1">C. 末叶标签 n&gt;1：找标签 n−1 的外层节点，再嵌套复制</h4>
+<p>从末叶向外回溯，找到最近的 \(p_{n-1}\)。记 k=n−1，把该节点及其内部写成：</p>
+<p>\[
+p_k(C[p_{k+1}(0)]).
+\]</p>
+<p>其中 C[□] 表示从选中节点内部到末叶之间的全部上下文，□ 是末叶的位置；途中没有另一个 \(p_k\)，否则就应选择更近的那个。</p>
+<p>定义：</p>
+<p>\[
+F(X)=p_k(C[X]).
+\]</p>
+<p>用 q 次迭代替换整个选中的子树：</p>
+<p>\[
+p_k(C[p_{k+1}(0)])\longmapsto F^q(0).
+\]</p>
+<p>也就是：</p>
+<p>\[
+F(0),\quad F(F(0)),\quad F(F(F(0))),\ldots
+\]</p>
+<p>按参数选择有限项。选中节点外面的结构保持不变。</p>
+<p><strong>这里是“加上去的 Hydra”最关键的作用：非最小标签触发向外找层，找到的上下文随后被不断嵌回末端，而非只做并列复制。</strong></p>
+<h3 id="43">4.3 例一：最小标签仍走普通再生</h3>
+<p>\[
+P=p_1(p_2(0)+p_1(0)).
+\]</p>
+<p>末叶是 \(p_1(0)\)，父节点是外层 \(p_1\)。删除末叶后，剩余父子树为 \(p_1(p_2(0))\)。因此：</p>
+<p>\[
+E_3(P)=p_1(p_2(0))+p_1(p_2(0))+p_1(p_2(0)).
+\]</p>
+<h3 id="44-hydra">4.4 例二：高标签叶子展开成任意长旧 Hydra 链</h3>
+<p>\[
+P=p_1(p_2(0)).
+\]</p>
+<p>末叶标签 2，向外找到标签 1 的节点。此时 C 是空上下文，故 \(F(X)=p_1(X)\)：</p>
+<p>\[
+E_1(P)=p_1(0),
+\]</p>
+<p>\[
+E_2(P)=p_1(p_1(0)),
+\]</p>
+<p>\[
+E_3(P)=p_1(p_1(p_1(0))).
+\]</p>
+<p>展开结果分别对应 \(1,\omega,\omega^\omega,\ldots\)，所以这一简单表达式表示 ε₀。</p>
+<p>这具体说明：原来一行系统的整体极限，在新系统里成为一个能够继续参与组合的项。</p>
+<h3 id="45">4.5 例三：复制的是带旁支的完整上下文</h3>
+<p>\[
+P=p_1(p_2(0)+p_2(0)).
+\]</p>
+<p>处理最后的 \(p_2(0)\)，向外找到 \(p_1\)。这次</p>
+<p>\[
+F(X)=p_1(p_2(0)+X).
+\]</p>
+<p>因此：</p>
+<p>\[
+E_1(P)=p_1(p_2(0)),
+\]</p>
+<p>\[
+E_2(P)=p_1(p_2(0)+p_1(p_2(0))),
+\]</p>
+<p>\[
+E_3(P)=p_1(p_2(0)+p_1(p_2(0)+p_1(p_2(0)))).
+\]</p>
+<p>每一层都保留了原来位于末叶左边的 \(p_2(0)\) 旁支。只写“向上复制”会漏掉这一点；明确 F 才能算出结果。</p>
+<p>下图圆内数字就是节点标签。红色的标签 2 是待展开末叶；蓝色节点是向外找到的标签 1 参考节点。右侧结果沿右分支嵌套三层，每层左边都保留一个标签 2 的叶子。</p>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph original[&quot;原项：p₁(p₂(0)+p₂(0))&quot;]
+        direction TB
+        R0[&quot;R&quot;] --&gt; A0((&quot;1&quot;))
+        A0 --&gt; L0((&quot;2&quot;))
+        A0 --&gt; Z0((&quot;2&quot;))
+    end
+    subgraph expanded[&quot;E₃：F(F(F(0)))&quot;]
+        direction TB
+        R1[&quot;R&quot;] --&gt; A1((&quot;1&quot;))
+        A1 --&gt; L1((&quot;2&quot;))
+        A1 --&gt; A2((&quot;1&quot;))
+        A2 --&gt; L2((&quot;2&quot;))
+        A2 --&gt; A3((&quot;1&quot;))
+        A3 --&gt; L3((&quot;2&quot;))
+    end
+    classDef root fill:#f1f5f9,stroke:#64748b,stroke-dasharray:5 4;
+    classDef reference fill:#dbeafe,stroke:#2563eb,stroke-width:3px;
+    classDef removed fill:#fee2e2,stroke:#dc2626;
+    classDef result fill:#dcfce7,stroke:#16a34a;
+    class R0,R1 root;
+    class A0 reference;
+    class Z0 removed;
+    class A1,A2,A3,L1,L2,L3 result;
+</pre></div>
+
+<p>右图的标签 1 节点形成新的嵌套骨架，标签 2 的左旁支被逐层带入；这与 KP 例子中并排摆放三个剩余子树是两种不同的展开形态。</p>
+<div class="ordinal-widget" data-kind="tree" data-title="PSS：看上下文怎样逐层嵌回" data-kp="false" data-value="[{&quot;k&quot;: 1, &quot;children&quot;: [{&quot;k&quot;: 2, &quot;children&quot;: []}, {&quot;k&quot;: 2, &quot;children&quot;: []}]}]"></div>
+
+<h3 id="46">4.6 例四：可以跨过标签不匹配的外层</h3>
+<p>\[
+P=p_1(p_2(p_2(0))).
+\]</p>
+<p>最右叶子标签 2。紧邻的外层标签也为 2，不能作为标签 1 的参考节点，因此继续向外找到最外的 \(p_1\)。</p>
+<p>此时：</p>
+<p>\[
+F(X)=p_1(p_2(X)).
+\]</p>
+<p>所以：</p>
+<p>\[
+E_3(P)=p_1(p_2(p_1(p_2(p_1(p_2(0)))))).
+\]</p>
+<p>这展示了标签实际控制找层距离与复制上下文，而不只是给节点着色。</p>
+<h2 id="5-hprss-hydra">5. HPrSS：把带标签 Hydra 压成纯数字序列</h2>
+<h3 id="51">5.1 数字记录什么</h3>
+<p>在这里采用的转换中，每个节点对应一个数字：<strong>它等于从当前顶层节点到该节点路径上所有标签之和。</strong>仍按先父后子、从左到右记录。</p>
+<p>例如：</p>
+<p>\[
+p_1(p_2(0)+p_2(p_1(0)))
+\quad\longleftrightarrow\quad(1,3,3,4).
+\]</p>
+<p>逐项解释：顶层标签 1 写为 1；两个标签 2 的子节点都写为 1+2=3；最后标签 1 的孙节点写为 1+2+1=4。</p>
+<p>下图把每个节点写成“标签 k／累计值 a”。按父节点优先、子节点从左到右读取累计值，便得到 <code>(1,3,3,4)</code>。深度 d 则用于下一节的矩阵表示。</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    R[&quot;R：公共根，不编码&quot;] --&gt; A((&quot;k=1&lt;br/&gt;a=1&lt;br/&gt;d=0&quot;))
+    A --&gt; B((&quot;k=2&lt;br/&gt;a=3&lt;br/&gt;d=1&quot;))
+    A --&gt; C((&quot;k=2&lt;br/&gt;a=3&lt;br/&gt;d=1&quot;))
+    C --&gt; D((&quot;k=1&lt;br/&gt;a=4&lt;br/&gt;d=2&quot;))
+    classDef root fill:#f1f5f9,stroke:#64748b,stroke-dasharray:5 4;
+    classDef node fill:#eff6ff,stroke:#2563eb;
+    class R root;
+    class A,B,C,D node;
+</pre></div>
+
+<p>同一棵树编码为双行 BMS 时，各节点写成 <code>(d,k−1)</code>，依次为 <code>(0,0)(1,1)(1,1)(2,0)</code>；这幅图因此也把树、HPrSS 和双行矩阵的对应放在了一起。</p>
+<p>若用 LP 表示编码，则：</p>
+<p>\[
+LP(0)=(),\qquad LP(A+B)=LP(A)\mathbin\Vert LP(B),
+\]</p>
+<p>\[
+LP(p_k(A))=(k)\mathbin\Vert(LP(A)+k),
+\]</p>
+<p>其中 \(\Vert\) 是拼接，\(LP(A)+k\) 表示每项加 k。[5]</p>
+<p>当所有标签都为 1 时，编码就是节点深度加 1；于是恢复为从 1 开始书写的 PrSS。</p>
+<h3 id="52">5.2 父项、标签与阶差</h3>
+<p>HPrSS 是以 1 开头的正整数序列。空序列表示 0；末项为 1 时删除末项。</p>
+<p>对其他项 \(a_i\)，其父项是左侧最近的小于它的项 \(a_{p(i)}\)。定义：</p>
+<p>\[
+d_i=a_i-a_{p(i)}.
+\]</p>
+<p>无父项时把其父值视为 0。对于上述树编码，<strong>阶差 d_i 就是节点自身的标签</strong>。</p>
+<p>所以，数字不是孤立的高度值：父项给出树的接入位置，阶差给出节点标签。</p>
+<h3 id="53-hprss">5.3 HPrSS 的展开算法</h3>
+<p>设末项为 \(a_m&gt;1\)，末项阶差为 \(d_m\)。</p>
+<ol>
+<li>若 \(d_m=1\)，坏根就是末项的父项。</li>
+<li>若 \(d_m&gt;1\)，沿末项的祖先链向左回溯，找到最近的阶差严格小于 \(d_m\) 的祖先，作为坏根。不能在整个序列中任意找符合条件的项。</li>
+<li>设坏根值为 \(a_r\)。好部 \(G=(a_1,\ldots,a_{r-1})\)，坏部 \(B=(a_r,\ldots,a_{m-1})\)。</li>
+<li>计算整体偏移：</li>
+</ol>
+<p>\[
+\delta=a_m-a_r-1.
+\]</p>
+<ol>
+<li>删除末项，把坏部复制成 q 块，第 t 块的每一项加 \(t\delta\)：</li>
+</ol>
+<p>\[
+E_q(S)=G\mathbin\Vert B\mathbin\Vert(B+\delta)
+\mathbin\Vert\cdots\mathbin\Vert(B+(q-1)\delta).
+\]</p>
+<p>注意区分每个位置的阶差 \(d_i\) 与复制时的整体偏移 δ。前者用于找根，后者用于生成副本。[5]</p>
+<h3 id="54">5.4 对照例一：并列复制</h3>
+<p>\[
+p_1(p_2(0)+p_1(0))\longleftrightarrow(1,3,2).
+\]</p>
+<p>末项 2 的父项为 1，所以末项阶差为 1，坏根是首项：</p>
+<pre><code class="language-text">G = ()
+B = (1,3)
+δ = 2−1−1 = 0
+</code></pre>
+<p>因此：</p>
+<p>\[
+E_3(1,3,2)=(1,3,1,3,1,3).
+\]</p>
+<p>解码后正是三份 \(p_1(p_2(0))\) 并列。</p>
+<h3 id="55">5.5 对照例二：嵌套复制</h3>
+<p>\[
+p_1(p_2(0)+p_2(0))\longleftrightarrow(1,3,3).
+\]</p>
+<p>末项父值为 1，末项阶差为 2；沿祖先链找到首项，其阶差为 1。于是：</p>
+<pre><code class="language-text">G = ()
+B = (1,3)
+δ = 3−1−1 = 1
+</code></pre>
+<p>三块分别是：</p>
+<pre><code class="language-text">B       = (1,3)
+B+δ     = (2,4)
+B+2δ    = (3,5)
+</code></pre>
+<p>故：</p>
+<p>\[
+E_3(1,3,3)=(1,3,2,4,3,5).
+\]</p>
+<p>解码后得到：</p>
+<p>\[
+p_1(p_2(0)+p_1(p_2(0)+p_1(p_2(0)))),
+\]</p>
+<p>与 PSS Hydra 的上下文嵌套例子完全对应。逐块上移的数字，记录了新增嵌套所积累的路径标签和。</p>
+<h3 id="56">5.6 一个找根不能只找父项的例子</h3>
+<p>取</p>
+<p>\[
+S=(1,4,6,6).
+\]</p>
+<p>其阶差序列为：</p>
+<p>\[
+(1,3,2,2).
+\]</p>
+<p>末项的父项是 4，但其阶差 3 大于末项阶差 2，因此不能作为坏根；继续沿祖先链到首项 1，其阶差 1&lt;2，选它作为坏根。</p>
+<pre><code class="language-text">G = ()
+B = (1,4,6)
+δ = 6−1−1 = 4
+</code></pre>
+<p>取 q=3：</p>
+<p>\[
+E_3(S)=(1,4,6,5,8,10,9,12,14).
+\]</p>
+<p>这就是 HPrSS 超出普通 PrSS 的一个具体表现：标签阶差参与找根，复制的坏部还会逐块抬升。</p>
+<div class="ordinal-widget" data-kind="h" data-title="HPrSS：观察坏部的逐块偏移" data-kp="false" data-value="[1, 4, 6, 6]"></div>
+
+<h2 id="6-bms">6. 双行 BMS：把树深度与标签分开写</h2>
+<p>PSS Hydra 到双行 BMS 的转换很直接：仍按先父后子遍历，每个节点写成一列</p>
+<p>\[
+(\text{深度},\ \text{标签}-1),
+\]</p>
+<p>顶层节点深度为 0。两行分别记录树结构与节点等级。[4]</p>
+<p>例如：</p>
+<p>\[
+p_1(p_2(0)+p_2(0))
+\longleftrightarrow(0,0)(1,1)(1,1).
+\]</p>
+<p>HPrSS 通过路径标签和把信息合并进单串数字，BMS 则把两部分分开记录。</p>
+<h3 id="61">6.1 双行展开的直接算法</h3>
+<p>为让矩阵也能独立操作，给出所需的两行规则。写每列为 \((x_i,y_i)\)。</p>
+<ul>
+<li>第一行父列：左侧最近的、第一行值小于当前值的列。</li>
+<li>第二行父列：沿第一行祖先链寻找，取其中最近的、第二行值小于当前值的列。</li>
+<li>若末列全为 0，删除末列。</li>
+<li>若末列第二行非零，使用第二行父列作坏根；否则使用第一行父列。</li>
+<li>好部 G 与坏部 B 仍分别是坏根左侧，以及从坏根到倒数第二列。</li>
+<li>若末列第二行为 0，复制 B 时不增加任何元素。</li>
+<li>若末列第二行非零，令 Δ 为“末列第一行减坏根第一行”。第 t 个块把第一行增加 tΔ；只对第一行祖先链包含坏根的列增加，其他列保持原值。第二行保持不变。</li>
+<li>最终拼接 q 个块，必要时消去底部全零行。</li>
+</ul>
+<p>这就是本篇所需的双行 BMS 展开；祖先限制在更复杂例子中重要，不能总把整个坏部无条件平移。[1][6]</p>
+<h3 id="62">6.2 同一个例子的三种展开</h3>
+<p>仍取：</p>
+<p>\[
+p_1(p_2(0)+p_2(0))\longleftrightarrow(1,3,3)
+\longleftrightarrow(0,0)(1,1)(1,1).
+\]</p>
+<p>末列第二行的父列为首列，所以坏部为 \((0,0)(1,1)\)，第一行偏移 Δ=1。q=3 时：</p>
+<pre><code class="language-text">第0块：(0,0)(1,1)
+第1块：(1,0)(2,1)
+第2块：(2,0)(3,1)
+</code></pre>
+<p>得到：</p>
+<p>\[
+(0,0)(1,1)(1,0)(2,1)(2,0)(3,1).
+\]</p>
+<p>三种表示的结果汇总为：</p>
+<table>
+<thead>
+<tr>
+<th>表示</th>
+<th>展开前</th>
+<th>E₃ 展开后</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PSS Hydra</td>
+<td>p₁(p₂(0)+p₂(0))</td>
+<td>p₁(p₂(0)+p₁(p₂(0)+p₁(p₂(0))))</td>
+</tr>
+<tr>
+<td>HPrSS</td>
+<td>(1,3,3)</td>
+<td>(1,3,2,4,3,5)</td>
+</tr>
+<tr>
+<td>双行 BMS</td>
+<td>(0,0)(1,1)(1,1)</td>
+<td>(0,0)(1,1)(1,0)(2,1)(2,0)(3,1)</td>
+</tr>
+</tbody>
+</table>
+<p>这个对照展示了同一次展开：Hydra 复制嵌套上下文，HPrSS 生成递增坏部块，BMS 增加相应节点的深度。</p>
+<div class="ordinal-widget" data-kind="bms" data-title="同一个双行 BMS 算例" data-kp="false" data-value="[[0, 0], [1, 1], [1, 1]]"></div>
+
+<h2 id="7-hydra">7. 从实际展开看，“加一行 Hydra”增加了什么</h2>
+<p>现在可以把层级关系写得更具体。</p>
+<p><strong>自然数记号</strong>只有并排计数，展开就是删除末项。</p>
+<p><strong>加第一行 Hydra</strong>后，有了无标签树的嵌套。末叶若不直接连公共根，删除它便触发剩余父子树的复制；PrSS 用深度序列记录这个过程。整体极限从 ω 到 ε₀。</p>
+<p><strong>再加一行 Hydra</strong>后，节点携带数字标签。最小标签继续执行普通再生；非最小标签根据数字所决定的层级向外找根，并把整个上下文不断嵌回末端。PSS Hydra 直接写出这个过程；HPrSS 用父项和阶差把它编码为纯数字序列；双行 BMS 用树深度与标签两行记录。整体极限通常记为 BO。</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>主要表示</th>
+<th>展开的新增内容</th>
+<th>极限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>零行</td>
+<td>自然数／P 记号</td>
+<td>删除最后一个单位</td>
+<td>ω</td>
+</tr>
+<tr>
+<td>单行</td>
+<td>KP Hydra ↔ PrSS</td>
+<td>删叶后复制剩余父子树</td>
+<td>ε₀</td>
+</tr>
+<tr>
+<td>双行</td>
+<td>PSS Hydra ↔ HPrSS ↔ 双行 BMS</td>
+<td>标签找层，并排或嵌套复制上下文</td>
+<td>BO</td>
+</tr>
+</tbody>
+</table>
+<p>用户所说的“给纯数字序列再加一行 Hydra”，应当沿这个构造理解：基础数字规则负责指导标签相关的展开，新增的 Hydra 负责树形包含、回溯与再生。若继续从 HPrSS 构造 HPrSS Hydra，也应写出相应具体规则，而不能只说“更高一层”便算完成定义。</p>
+<p>继续增加 Hydra 层级以后，需要把有限层级的全体、它的纯数字编码以及相应的树形表示一起考虑。下面继续讨论完整 BMS、0-Y 和 0-Y Hydra。</p>
+<h2 id="8-bms-0-y">8. 不断加行的极限：BMS 与 0-Y</h2>
+<h3 id="81">8.1 “不断加行”的终点是什么意思</h3>
+<p>前面的零行、单行、双行只是开头。继续沿同一种多层 Hydra 构造推进，每个阶段使用有限层级；将所有有限层级合在一起，就得到这里所讨论的整体范围。</p>
+<p>这个“终点”不是一张实际写了无限行的矩阵。<strong>每个表达式仍然有限，只是整个系统不再规定统一的行数上限。</strong></p>
+<p>用矩阵表示，这就是完整 BMS；用纯数字序列及其阶差山脉编码，则是 0-Y。二者整体极限在本文语境下称为 BMO／SHO。</p>
+<table>
+<thead>
+<tr>
+<th>范围</th>
+<th>矩阵表示</th>
+<th>其他表示</th>
+<th>整体极限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>零行</td>
+<td>只记自然数个单位</td>
+<td>自然数／P 记号</td>
+<td>ω</td>
+</tr>
+<tr>
+<td>单行</td>
+<td>单行 BMS</td>
+<td>KP Hydra／PrSS</td>
+<td>ε₀</td>
+</tr>
+<tr>
+<td>双行</td>
+<td>双行 BMS</td>
+<td>PSS Hydra／HPrSS</td>
+<td>BO</td>
+</tr>
+<tr>
+<td>任意有限行</td>
+<td>完整 BMS</td>
+<td>0-Y 的纯数字编码</td>
+<td>BMO／SHO</td>
+</tr>
+</tbody>
+</table>
+<p>这是一条构造与表示的总体路线；尤其是有限行到对应 Hydra 扩展的每一步，仍须采用相配的找根、复制规则，不能只从名字相似推出等价。</p>
+<h3 id="82-bms">8.2 BMS 怎样同时容纳所有有限行</h3>
+<p>BMS 使用有限的自然数矩阵，每一列写成一个括号。各行都有父关系：第一行向左找最近的较小值；后续行只在上一行祖先链中找较小值。</p>
+<p>对末列，找到最下面仍有父关系的一行，取这一行的父列作为坏根。从坏根到倒数第二列构成坏部。复制时，决定层上方的行可能增加偏移，而增加仅作用于相应行上依赖坏根的元素。</p>
+<p>用列 L 表示末列、R 表示坏根，决定层为 t，行号从上往下计，则上方第 y 行的偏移为：</p>
+<p>\[
+\Delta_y=L_y-R_y\quad(y&lt;t),\qquad\Delta_y=0\quad(y\ge t).
+\]</p>
+<p>第 k 块中，只有第 y 行祖先链包含坏根的元素才加 \(k\Delta_y\)。最后拼接 q 个块，消去底部全零行。这就是前面双行规则的多行版本。[1][6]</p>
+<p>最简单的种子族是：</p>
+<p>\[
+I_h=(0^h)(1^h),
+\]</p>
+<p>其中 \(0^h\) 表示 h 个 0 组成的一列，\(1^h\) 同理。h≥2 时：</p>
+<p>\[
+E_q(I_h)=(0^{h-1})(1^{h-1})\cdots((q-1)^{h-1}).
+\]</p>
+<p>例如三行项：</p>
+<p>\[
+(0,0,0)(1,1,1)\xrightarrow{E_3}(0,0)(1,1)(2,2).
+\]</p>
+<p>更高层的简单项，可以展开成较低层的长链；而较低层链内部又有自己的展开。因此，有限层级之间通过基本列衔接起来。</p>
+<p>种子族</p>
+<p>\[
+(0)(1),\quad(0,0)(1,1),\quad(0,0,0)(1,1,1),\ldots
+\]</p>
+<p>是整体极限的共尾逼近。它的每一项只是一个普通有限矩阵，整体上确界才是 BMO／SHO。</p>
+<div class="ordinal-widget" data-kind="bms" data-title="三行种子展开为双行长链" data-kp="false" data-value="[[0, 0, 0], [1, 1, 1]]"></div>
+
+<h3 id="83-0-y">8.3 0-Y 怎样把任意有限行装进一串数字</h3>
+<p>0-Y 表达式是以 1 开头的正整数序列，另允许空序列。空序列表示 0；末项为 1 时删除末项取前驱；末项大于 1 时构造阶差山脉，决定基本列。[7]</p>
+<p>第一层是原序列。对每个值大于 1 的位置，找左侧较小值作父项，并写下两者的差，得到上一层；从第二层起，选父项还须服从下一层的祖先关系。值为 1 的位置继续向上写 1。</p>
+<p>例如：</p>
+<pre><code class="language-text">上层边界    1  1  1  1
+第2阶差     1  2  1  2
+第1阶差     1  3  2  3
+原序列      1  4  6  4
+</code></pre>
+<p>以原序列末项 4 为例：它的父项是首项 1，差为 3；上一层末项 3 的父项仍在首列，差为 2；再上一层末项 2 与其父项 1 的差为 1。到这里就能确定展开所需的坏根为首列。</p>
+<p>数字路径上的差分关系，可以画成山脉的两条腿。以末列这条链为例，竖线连接同列，斜线连接父项：</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    d[&quot;阶差 2&quot;] --&gt;|右腿| c[&quot;第1阶差末项 3&quot;]
+    d --&gt;|左腿| p1[&quot;第1阶差父项 1&quot;]
+    c --&gt;|右腿| a[&quot;原序列末项 4&quot;]
+    c --&gt;|左腿| p0[&quot;原序列父项 1&quot;]
+</pre></div>
+
+<p>沿一对腿向下还原时，满足“当前值＝上方阶差值＋父项值”。因此一串数字可隐含多层依赖，逐层取阶差便能把它们恢复出来。</p>
+<p>将各层的父链深度记录为矩阵行，得到：</p>
+<p>\[
+(1,4,6,4)\longleftrightarrow
+(0,0,0)(1,1,1)(2,1,0)(1,1,1).
+\]</p>
+<p>这说明 0-Y 的纸面形式虽只有一串数字，却能编码三行乃至任意有限行 BMS。</p>
+<h3 id="84-0-y">8.4 0-Y 的具体展开</h3>
+<p>对末列逐层取阶差，首次发现末项与父项之差为 1 的层作为决定层，其父列为根列。</p>
+<ol>
+<li>保留根列及其左侧结构。</li>
+<li>取根列右侧至末列的山脉为坏部，保留其连线。</li>
+<li>将决定层的末项减 1，擦去坏部在该层以下的数值。</li>
+<li>坏部保留 q 份；复制连线时，连到根列严格左侧的左腿端点固定不动。</li>
+<li>由上向下、每行从左到右，用“阶差＋父项值”回填。</li>
+<li>读出底行，作为基本列项。</li>
+</ol>
+<p>例如上面的序列，在本文按条目算例固定的 q=3 约定下：</p>
+<p>\[
+D_3(1,4,6,4)=(1,4,6,3,7,10,6,11,15,10).
+\]</p>
+<p>把复制的三块标出，更容易看清：</p>
+<pre><code class="language-text">保留根列     第0块      第1块        第2块
+   1       | 4,6,3 | 7,10,6 | 11,15,10
+</code></pre>
+<p>这里单独写 D_q，是因为来源中 0-Y 的基本列与前面 BMS 的总块数约定存在末项边界差异；不能把同名下标不加检查地逐项等同。互译的概念关系不要求读者先解决这个编号问题。</p>
+<p>其整体共尾种子族为：</p>
+<p>\[
+(1,2),\quad(1,3),\quad(1,4),\quad(1,5),\ldots
+\]</p>
+<p>与 BMS 的 \(I_1,I_2,I_3,I_4,\ldots\) 对应。完整 BMS 展示有限层级本身，0-Y 则把这些层级编码为纯数字序列。</p>
+<div class="ordinal-widget" data-kind="y" data-title="0-Y：复制以后回填阶差山脉" data-kp="false" data-value="[1, 4, 6, 4]"></div>
+
+<h2 id="9-0-y-hydra">9. 那么，0-Y Hydra 放在哪里？</h2>
+<h3 id="91-hydra">9.1 它问的是极限层级上的 Hydra 化</h3>
+<p>PrSS 加 Hydra 得到 PSS Hydra；HPrSS 还能进一步考虑其 Hydra 形式。沿这条思路，0-Y Hydra 就是在已经容纳任意有限层级的 0-Y 基础上，再组织一层树形的包含、找根和复制。</p>
+<p>表示上可以用 \(p_a(A)\) 这样的带数字标签节点；但展开时不能机械照搬 PSS 的“标签减 1、找最近的前一级”作为全部规则，而应由 0-Y 的阶差山脉决定相应的数字展开与参考结构。否则定义出来的是另一套带标签树。</p>
+<p>以下图示仅说明表示结构：节点上写数字，括号给出外加的 Hydra 包含关系；它不是未经说明的 0-Y Hydra 完整算例。</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    R[&quot;公共根&quot;] --&gt; A((&quot;1&quot;))
+    A --&gt; B((&quot;4&quot;))
+    A --&gt; C((&quot;6&quot;))
+    C --&gt; D((&quot;4&quot;))
+</pre></div>
+
+<p>这里有两种信息共同存在：树给出新的包含关系，数字展开则要求调用 0-Y 的内部层次。要算基本列，二者必须有明确的结合规则。</p>
+<h3 id="92-0-y-hydra-0-y">9.2 为什么 0-Y Hydra 与 0-Y 的极限相同</h3>
+<p><strong>0-Y Hydra、0-Y 和完整 BMS 的整体极限相同，均为 BMO／SHO。</strong></p>
+<p>在固定的有限层级上加一行 Hydra，会进入下一个层级；而 0-Y 已经汇集了任意有限层级。每个 0-Y Hydra 表达式只包含有限个节点和有限深度的树，其新增的 Hydra 结构可以容纳在某个更高、但仍然有限的层级中。因此它仍属于完整的有限层级范围。</p>
+<p>另一方面，原有层级也保留在 Hydra 表示之中，所以它并未缩小整体范围。两者结合，说明在这个极限处加一行 Hydra，整体极限保持不变。</p>
+<p>可以把这种吸收关系概括为：</p>
+<blockquote>
+<p>对每一个具体表达式，都能找到足够高的有限层级容纳它；但不存在一个固定的有限层级，能够容纳整个系统。</p>
+</blockquote>
+<p>这也解释了“不断加行的终点”：每个有限阶段仍能继续提高，而汇集所有有限阶段以后，再加一层有限 Hydra 结构仍被这一整体吸收。这里说的是当前这条加行路线的闭合，不是所有序数构造的绝对终点。</p>
+<h3 id="93">9.3 三者是同一整体层级的不同表示</h3>
+<p>三者应放在同一个整体层级中：</p>
+<table>
+<thead>
+<tr>
+<th>表示</th>
+<th>结构特点</th>
+<th>整体极限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完整 BMS</td>
+<td>任意有限行的矩阵</td>
+<td>BMO／SHO</td>
+</tr>
+<tr>
+<td>0-Y</td>
+<td>以阶差山脉恢复内部层级的纯数字序列</td>
+<td>BMO／SHO</td>
+</tr>
+<tr>
+<td>0-Y Hydra</td>
+<td>在 0-Y 基础上组织树形包含与再生</td>
+<td>BMO／SHO</td>
+</tr>
+</tbody>
+</table>
+<p>因此，主线应写为：</p>
+<p>\[
+\boxed{\text{完整 BMS、0-Y、0-Y Hydra：同一整体极限 BMO／SHO}}
+\]</p>
+<p>这里的极限相同，不要求三者在纸面上写出同样的表达式，也不要求使用完全相同的基本列编号。本文已有的 0-Y 山脉算法与 BMS 矩阵算法分别说明前两种表示如何操作；0-Y Hydra 的具体基本列还需要写清数字展开与树形复制怎样结合，不能用“极限相同”代替其操作规则。</p>
+<p>整体图可以归纳为：</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    N[&quot;零行：自然数／P；极限 ω&quot;] --&gt; K[&quot;加 Hydra：KP／PrSS；极限 ε₀&quot;]
+    K --&gt; P[&quot;再加 Hydra：PSS Hydra／HPrSS／双行 BMS；极限 BO&quot;]
+    P --&gt; F[&quot;继续各个有限层级&quot;]
+    F --&gt; L[&quot;汇集任意有限层：完整 BMS／0-Y／0-Y Hydra；共同极限 SHO／BMO&quot;]
+    L --&gt; H[&quot;再加一行 Hydra：新增有限结构被整体吸收&quot;]
+    H --&gt; L
+</pre></div>
+
+<h2 id="10">10. 规则与算例的核对</h2>
+<p>本文采用共同的总副本数 q，把不同资料的编号约定统一。已用独立的树操作与 HPrSS 数列操作，核对以下四个例子的 E₃ 结果一致：</p>
+<ul>
+<li>p₁(p₂(0)+p₁(0))；</li>
+<li>p₁(p₂(0))；</li>
+<li>p₁(p₂(0)+p₂(0))；</li>
+<li>p₁(p₂(p₂(0)))。</li>
+</ul>
+<p>另核对了 HPrSS 的 (1,4,6,6) 阶差例子。程序只是检查文中有限算例，不要求先完成所有互译的形式化证明。</p>
+<p>可复现材料：算例检查程序、逐例结果。</p>
+<h2 id="_1">参考资料</h2>
+<ol>
+<li>Rachel Hunter，<a href="https://arxiv.org/html/2307.04606v3">Well-Orderedness of the Bashicu Matrix System</a>：BM4 定义、PrSS 与双行系统的序型背景。</li>
+<li><a href="https://wiki.googology.top/index.php?title=Kirby-Paris_Hydra">Kirby–Paris Hydra</a>：树形展开的操作参考。本文直接采用序数项与基本列的表述，以副本总数 q 标记各项，并固定最右叶子以便与序列表示对应。</li>
+<li><a href="https://wiki.googology.top/index.php?title=初等序列系统">初等序列系统 PrSS</a>：好部、坏部、坏根与复制展开。</li>
+<li><a href="https://wiki.googology.top/index.php?title=PSS_Hydra">PSS Hydra</a>：带标签节点的三类操作，以及到双行 BMS 的转换。</li>
+<li><a href="https://wiki.googology.top/index.php/超初等序列">超初等序列 HPrSS</a>：阶差找根、逐块偏移与 Hydra 转换。原条目第二种坏根条件写为 d≥1，与第一种重叠；本文依分支含义写为 d&gt;1。</li>
+<li><a href="https://wiki.googology.top/index.php?title=BMS">BMS</a>：父项与偏移掩码的中文说明。</li>
+<li><a href="https://wiki.googology.top/index.php?title=0-Y">0-Y</a>：多阶差山脉、展开算例及与 BMS 的转换说明。条目同时指出一般转换结论尚缺严格证明；本篇按其明确算法和算例介绍，不要求展开证明。</li>
+<li><a href="https://wiki.googology.top/index.php?title=SHO">SHO</a>：当前中文社区的 BMO／SHO 命名背景；不据该页断言完整极限的精确传统序数刻画已完成。</li>
+</ol></article></main><footer class="closing"><span>Hydra 层级与表示形式 · Dstty</span><a href="lab.html">需要自由探索？打开完整实验室 ↗</a></footer></body></html>
