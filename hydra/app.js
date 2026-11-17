@@ -24,15 +24,13 @@ function treeSvg(f,meta={},result=false){
  if(!isRoot&&$('annotations').checked)out+=`<text x="${x}" y="${y+42}" text-anchor="middle" fill="#6a7e68" font-size="10">${mode==='kp'?'深度 '+n.d:'Σ='+n.sum+' · d='+n.d}</text>`;out+='</g>';}
  return out+'</svg>';
 }
-function mountainSvg(s,meta={}){const {rows,ps}=E.mountain(s);if(!s.length)return '<p>空项 0</p>';const w=Math.max(440,s.length*88+100),h=rows.length*85+55;let out=`<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="0-Y 阶差山脉" viewBox="0 0 ${w} ${h}" style="min-width:${w}px">`;function xy(y,x){return [85+x*88,h-45-y*85];}
- for(let y=0;y<rows.length-1;y++)for(let x=0;x<s.length;x++){const [xx,yy]=xy(y+1,x),[bx,by]=xy(y,x);out+=`<path d="M${xx},${yy+15}L${bx},${by-15}" stroke="#b2c3aa" fill="none"/>`;if(ps[y][x]>=0){const [px,py]=xy(y,ps[y][x]);out+=`<path d="M${xx},${yy+15}L${px},${py-15}" stroke="#d5b891" stroke-dasharray="4 3" fill="none"/>`;}}
- for(let y=0;y<rows.length;y++){out+=`<text x="8" y="${xy(y,0)[1]+4}" font-size="10" fill="#72816a">${y===0?'原序列':'阶差 '+y}</text>`;for(let x=0;x<s.length;x++){const [xx,yy]=xy(y,x),fill=x===s.length-1?'#fae8e0':x===meta.r?'#e1edf4':'#fff';out+=`<circle cx="${xx}" cy="${yy}" r="18" fill="${fill}" stroke="#a4b49c"/><text x="${xx}" y="${yy+5}" text-anchor="middle" font-size="13" fill="#263e2c">${rows[y][x]}</text>`;}}return out+'</svg>';}
+function mountainSvg(s){return MountainView.svg(s,{full:$('annotations').checked});}
 function matrixSvg(a,meta={}){if(!a.length)return '<p>空矩阵，表示 0</p>';const w=Math.max(440,a.length*72+100),h=Math.max(220,a[0].length*55+95);let s=`<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BMS 矩阵" viewBox="0 0 ${w} ${h}" style="min-width:${w}px">`;for(let y=0;y<a[0].length;y++){s+=`<text x="12" y="${65+y*55}" font-size="11" fill="#6c7d65">第${y+1}行</text>`;for(let x=0;x<a.length;x++){const xx=85+x*72,yy=60+y*55;s+=`<rect x="${xx-24}" y="${yy-22}" width="48" height="40" rx="7" fill="${x===a.length-1?'#f8e4dc':x===meta.r?'#dfebf3':'#eef4e8'}"/><text x="${xx}" y="${yy+5}" text-anchor="middle" fill="#273f2b" font-size="16">${a[x][y]}</text>`;}}return s+'</svg>';}
 function rep(label,text){return '<div class="representation"><small>'+esc(label)+'</small><code>'+esc(text)+'</code></div>';}
 function render(){
  $('status').textContent='';let ex;try{ex=getExpansion();}catch(e){$('status').textContent=e.message;ex={explanation:'当前项不能继续在本页限制内展开。',leafPath:[],rootPath:[]};}
  $('expression').value=displayText(value);$('qval').value=$('q').value;$('step').disabled=!value.length||!ex.type;$('undo').disabled=!history.length;
- $('viewtitle').textContent=mode==='y'?'阶差山脉 · 实线为右腿，虚线为左腿':mode==='bms'?'矩阵的层级与坏根':'树的包含关系 · 点击节点查看编码';
+ $('viewtitle').textContent=mode==='y'?'阶差山脉 · 竖直右腿、斜左腿；编码标注开关显示完整阶差':mode==='bms'?'矩阵的层级与坏根':'树的包含关系 · 点击节点查看编码';
  const svg=mode==='kp'||mode==='pss'?treeSvg(value,ex):mode==='y'?mountainSvg(value,ex):matrixSvg(value,ex);$('canvas').innerHTML=svg;lastSvg=svg;$('explanation').textContent=ex.explanation||'';
  let reps='';if(mode==='kp'||mode==='pss'){reps+=rep('括号表达式',E.formatForest(value,mode==='kp'));reps+=rep(mode==='kp'?'PrSS · 节点深度':'HPrSS · 路径标签累计值',seqText(mode==='kp'?E.forestToSeq(value).map(v=>v-1):E.forestToSeq(value)));const m=E.forestToMatrix(value);reps+=rep(mode==='kp'?'单行矩阵':'双行 BMS · (深度, 标签−1)',matrixText(mode==='kp'?m.map(c=>[c[0]]):m));}
  else if(mode==='bms'){reps+=rep('BMS · 按列书写',matrixText(value));try{reps+=rep('对应 0-Y 数字编码',seqText(E.toY(value)));}catch(e){reps+=rep('编码提示',e.message);}}
